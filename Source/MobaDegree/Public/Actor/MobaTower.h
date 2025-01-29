@@ -4,7 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Team/EnumTeam.h"
 #include "MobaTower.generated.h"
+
+class UAttackComponent;
+class USphereComponent;
 
 UCLASS()
 class MOBADEGREE_API AMobaTower : public AActor
@@ -12,15 +16,30 @@ class MOBADEGREE_API AMobaTower : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMobaTower();
-
+	virtual void Tick(float DeltaTime) override;
+	
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	UFUNCTION()
+	void OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
+	UFUNCTION()
+	void OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	
+private:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	EEnumTeam Team;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> TowerMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USphereComponent> TowerRadius;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAttackComponent> AttackComponent;
+	
 };

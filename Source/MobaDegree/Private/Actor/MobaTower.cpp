@@ -3,22 +3,48 @@
 
 #include "Actor/MobaTower.h"
 
-// Sets default values
+#include "Component/AttackComponent.h"
+#include "Components/SphereComponent.h"
+
 AMobaTower::AMobaTower()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	TowerMesh = CreateDefaultSubobject<UStaticMeshComponent>("Tower Mesh");
+	SetRootComponent(TowerMesh);
+
+	TowerRadius = CreateDefaultSubobject<USphereComponent>("Tower Radius");
+	TowerRadius->SetupAttachment(TowerMesh);
+
+	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
 
 }
 
-// Called when the game starts or when spawned
 void AMobaTower::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TowerRadius->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAggroRangeBeginOverlap);
+	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
 	
 }
 
-// Called every frame
+void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AttackComponent->SetAttackTarget(OtherActor);
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack"));
+	}
+}
+
+void AMobaTower::OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	AttackComponent->SetAttackTarget(nullptr);
+}
+
 void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
