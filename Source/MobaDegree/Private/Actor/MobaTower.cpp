@@ -3,7 +3,6 @@
 
 #include "Actor/MobaTower.h"
 #include "Component/AttackComponent.h"
-#include "Team/TeamComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
 
@@ -19,7 +18,6 @@ AMobaTower::AMobaTower()
 
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
 	
-	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
 }
 
 void AMobaTower::BeginPlay()

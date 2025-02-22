@@ -1,6 +1,8 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "MobaDegreeCharacter.h"
+
+#include "AbilitySystemComponent.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "Components/DecalComponent.h"
@@ -10,11 +12,9 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
-#include "Team/TeamComponent.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
-	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
 	
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -46,6 +46,8 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 }
 
 void AMobaDegreeCharacter::Tick(float DeltaSeconds)
