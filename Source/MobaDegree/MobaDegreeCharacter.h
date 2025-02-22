@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "MobaDegreeCharacter.generated.h"
 
+class UTeamComponent;
+
 UCLASS(Blueprintable)
 class AMobaDegreeCharacter : public ACharacter
 {
@@ -21,6 +23,9 @@ public:
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UTeamComponent> TeamComponent;
 
 private:
 	/** Top down camera */

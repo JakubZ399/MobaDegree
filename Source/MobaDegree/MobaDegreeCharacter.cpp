@@ -10,9 +10,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "Team/TeamComponent.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
+	
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 

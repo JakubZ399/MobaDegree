@@ -2,9 +2,10 @@
 
 
 #include "Actor/MobaTower.h"
-
 #include "Component/AttackComponent.h"
+#include "Team/TeamComponent.h"
 #include "Components/SphereComponent.h"
+#include "GameFramework/Character.h"
 
 AMobaTower::AMobaTower()
 {
@@ -17,7 +18,8 @@ AMobaTower::AMobaTower()
 	TowerRadius->SetupAttachment(TowerMesh);
 
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
-
+	
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
 }
 
 void AMobaTower::BeginPlay()
@@ -32,17 +34,30 @@ void AMobaTower::BeginPlay()
 void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AttackComponent->SetAttackTarget(OtherActor);
-	if (GEngine)
+	if (Cast<ACharacter>(OtherActor))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack"));
+		AttackComponent->SetAttackTarget(OtherActor);
+		SpawnTowerShot();
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack"));
+		}
 	}
+	
+
 }
 
 void AMobaTower::OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	AttackComponent->SetAttackTarget(nullptr);
+	if (Cast<ACharacter>(OtherActor))
+	{
+		AttackComponent->SetAttackTarget(nullptr);
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Cyan, TEXT("Stop"));
+		}
+	}
 }
 
 void AMobaTower::Tick(float DeltaTime)

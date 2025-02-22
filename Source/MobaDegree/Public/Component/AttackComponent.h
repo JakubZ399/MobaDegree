@@ -16,13 +16,12 @@ public:
 	UAttackComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<AActor> AttackTarget;
 protected:
 	virtual void BeginPlay() override;
 
-private:	
 
-	UPROPERTY()
-	TObjectPtr<AActor> AttackTarget;
 
 public:
 	FORCEINLINE void SetAttackTarget(AActor* Target) { AttackTarget =  Target; };

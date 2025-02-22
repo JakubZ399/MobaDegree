@@ -4,9 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Team/EnumTeam.h"
+#include "Team/EGameTeam.h"
 #include "MobaTower.generated.h"
 
+class UTeamComponent;
 class UAttackComponent;
 class USphereComponent;
 
@@ -18,6 +19,12 @@ class MOBADEGREE_API AMobaTower : public AActor
 public:	
 	AMobaTower();
 	virtual void Tick(float DeltaTime) override;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UTeamComponent> TeamComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAttackComponent> AttackComponent;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -27,11 +34,12 @@ protected:
 
 	UFUNCTION()
 	void OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpawnTowerShot();
 	
 private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
-	EEnumTeam Team;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TowerMesh;
@@ -39,7 +47,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> TowerRadius;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAttackComponent> AttackComponent;
+
+
+
 	
 };
