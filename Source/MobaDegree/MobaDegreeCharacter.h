@@ -4,37 +4,47 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
-class UAbilitySystemComponent;
+class UMobaDefaultPlayerAttributeSet;
 class UTeamComponent;
 
 UCLASS(Blueprintable)
-class AMobaDegreeCharacter : public ACharacter
+class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	AMobaDegreeCharacter();
-
-	// Called every frame.
 	virtual void Tick(float DeltaSeconds) override;
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	/** Returns TopDownCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+protected:
+	virtual void BeginPlay() override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
+	TObjectPtr<UMobaDefaultPlayerAttributeSet> AttributeSet;
+
+	void InitializeAttribute();
 
 private:
-	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* TopDownCameraComponent;
-
-	/** Camera boom positioning the camera above the character */
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
+
+	UPROPERTY(EditAnywhere, Category = _GAS)
+	TSubclassOf<UGameplayEffect> InitEffect;
+
+public:
+	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 };
 
