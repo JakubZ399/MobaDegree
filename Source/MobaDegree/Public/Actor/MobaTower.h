@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemComponent.h"
 #include "GameFramework/Actor.h"
 #include "Team/EGameTeam.h"
 #include "MobaTower.generated.h"
@@ -22,6 +23,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAttackComponent> AttackComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<USceneComponent> ProjectileSpawner;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -37,15 +44,15 @@ protected:
 	
 private:
 	
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TowerMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> TowerRadius;
 
+	FTransform ProjectileSpawnerTransform;
 
-
-
-	
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE FTransform GetProjectileSpawnerTransform() const { return ProjectileSpawnerTransform; }
 };

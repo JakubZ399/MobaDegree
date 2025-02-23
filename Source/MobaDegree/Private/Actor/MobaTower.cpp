@@ -17,6 +17,14 @@ AMobaTower::AMobaTower()
 	TowerRadius->SetupAttachment(TowerMesh);
 
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
+	AttackComponent->SetIsReplicated(true);
+
+	ProjectileSpawner = CreateDefaultSubobject<USceneComponent>("Projectile Spawner");
+	ProjectileSpawner->SetupAttachment(GetRootComponent());
+
+	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("Ability System Component");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	
 }
 
@@ -26,6 +34,8 @@ void AMobaTower::BeginPlay()
 
 	TowerRadius->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAggroRangeBeginOverlap);
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
+
+	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
 	
 }
 

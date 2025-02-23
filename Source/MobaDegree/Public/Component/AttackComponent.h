@@ -15,8 +15,9 @@ class MOBADEGREE_API UAttackComponent : public UActorComponent
 public:	
 	UAttackComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Replicated)
 	TObjectPtr<AActor> AttackTarget;
 protected:
 	virtual void BeginPlay() override;
