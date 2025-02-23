@@ -19,6 +19,8 @@ class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface
 public:
 	AMobaDegreeCharacter();
 	virtual void Tick(float DeltaSeconds) override;
+
+	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 

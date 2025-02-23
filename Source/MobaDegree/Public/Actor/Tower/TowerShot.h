@@ -18,10 +18,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
+	UFUNCTION(BlueprintCallable)
+	void AttackTarget(AActor* Target);
+
 protected:
+
 
 private:
 
+	void UpdateAlpha();
+	float AlphaToInterpolation{0.f};
+	FTimerHandle LerpTimer;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AActor> AttackTargetActor;
 
 };
