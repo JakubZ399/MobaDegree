@@ -21,7 +21,7 @@ class MOBADEGREE_API UMobaDefaultPlayerAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
-	public:
+public:
 	UMobaDefaultPlayerAttributeSet();
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 	
