@@ -6,6 +6,7 @@
 #include "Net/UnrealNetwork.h"
 
 UMinionAttributeSet::UMinionAttributeSet()
+	: Health(250.f), MaxHealth(250.f), AttackDamage(25.f), AttackRange(30.f), AttackSpeed(1.f), MovementSpeed(300.f)
 {
 }
 

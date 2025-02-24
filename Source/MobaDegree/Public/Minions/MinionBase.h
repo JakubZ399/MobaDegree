@@ -23,9 +23,13 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<UAbilitySystemComponent> AbilitySystemComponent;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
-	TSubclassOf<UMinionAttributeSet> AttributeSet;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TObjectPtr<UMinionAttributeSet> AttributeSet;
+
+private:
+	UPROPERTY(EditAnywhere, Category = "A_GAS")
+	TSubclassOf<UGameplayEffect> InitEffect;
 };
