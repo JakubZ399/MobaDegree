@@ -25,6 +25,7 @@ protected:
 
 
 public:
-	FORCEINLINE void SetAttackTarget(AActor* Target) { AttackTarget =  Target; };
+	FORCEINLINE void SetAttackTarget(AActor* Target) { AttackTarget = Target; };
+	FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; };
 		
 };

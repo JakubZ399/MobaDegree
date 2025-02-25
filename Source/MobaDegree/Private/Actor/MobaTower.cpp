@@ -5,6 +5,7 @@
 #include "Component/AttackComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
+#include "GAS/AttributeSets/MinionAttributeSet.h"
 
 AMobaTower::AMobaTower()
 {
@@ -25,6 +26,8 @@ AMobaTower::AMobaTower()
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("Ability System Component");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	AttributeSet = CreateDefaultSubobject<UMinionAttributeSet>("Attribute Set");
 	
 }
 
@@ -36,35 +39,34 @@ void AMobaTower::BeginPlay()
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
 
 	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
+
+	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
+	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	
 }
 
 void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (Cast<ACharacter>(OtherActor))
+	if (Cast<APawn>(OtherActor))
 	{
-		AttackComponent->SetAttackTarget(OtherActor);
-		SpawnTowerShot();
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, TEXT("Attack"));
-		}
+		PawnsArray.AddUnique(OtherActor);
 	}
-	
-
+	if (!AttackComponent->GetAttackTarget() && Cast<APawn>(OtherActor) && !bIsAttacking)
+	{
+			AttackComponent->SetAttackTarget(OtherActor);
+			bIsAttacking = true;
+			SpawnTowerShot();
+	}
 }
 
 void AMobaTower::OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (Cast<ACharacter>(OtherActor))
+	if (AttackComponent->GetAttackTarget() && AttackComponent->GetAttackTarget() == OtherActor)
 	{
 		AttackComponent->SetAttackTarget(nullptr);
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Cyan, TEXT("Stop"));
-		}
 	}
 }
 
@@ -72,5 +74,10 @@ void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+UAbilitySystemComponent* AMobaTower::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
 }
 

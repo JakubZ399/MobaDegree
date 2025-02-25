@@ -4,18 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "MinionBase.generated.h"
 
 class UMinionAttributeSet;
 
 UCLASS()
-class MOBADEGREE_API AMinionBase : public ACharacter
+class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
 	AMinionBase();
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 protected:
 	virtual void BeginPlay() override;

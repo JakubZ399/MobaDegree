@@ -16,6 +16,11 @@ AMinionBase::AMinionBase()
 
 }
 
+UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 void AMinionBase::BeginPlay()
 {
 	Super::BeginPlay();
