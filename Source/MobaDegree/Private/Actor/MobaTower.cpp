@@ -3,6 +3,7 @@
 
 #include "Actor/MobaTower.h"
 #include "Component/AttackComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/Character.h"
 #include "GAS/AttributeSets/MinionAttributeSet.h"
@@ -11,11 +12,14 @@ AMobaTower::AMobaTower()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
+	SetRootComponent(CapsuleComponent);
+
 	TowerMesh = CreateDefaultSubobject<UStaticMeshComponent>("Tower Mesh");
-	SetRootComponent(TowerMesh);
+	TowerMesh->SetupAttachment(GetRootComponent());
 
 	TowerRadius = CreateDefaultSubobject<USphereComponent>("Tower Radius");
-	TowerRadius->SetupAttachment(TowerMesh);
+	TowerRadius->SetupAttachment(GetRootComponent());
 
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
 	AttackComponent->SetIsReplicated(true);

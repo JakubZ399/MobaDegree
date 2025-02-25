@@ -52,7 +52,7 @@ public:
 
 private:
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void OnRep_Health(const FGameplayAttributeData& OldHealth);
 	
 	UFUNCTION()

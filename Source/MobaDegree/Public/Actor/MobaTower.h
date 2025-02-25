@@ -9,6 +9,7 @@
 #include "Team/EGameTeam.h"
 #include "MobaTower.generated.h"
 
+class UCapsuleComponent;
 class UMinionAttributeSet;
 class UTeamComponent;
 class UAttackComponent;
@@ -49,6 +50,9 @@ protected:
 	void SpawnTowerShot();
 	
 private:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UCapsuleComponent> CapsuleComponent;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TowerMesh;
