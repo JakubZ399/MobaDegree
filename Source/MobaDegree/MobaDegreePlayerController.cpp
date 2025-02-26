@@ -20,12 +20,15 @@ AMobaDegreePlayerController::AMobaDegreePlayerController()
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 	FollowTime = 0.f;
+	bPawnClicked = false;
 }
 
 void AMobaDegreePlayerController::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
+
+	PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
 }
 
 void AMobaDegreePlayerController::SetupInputComponent()
@@ -65,15 +68,13 @@ void AMobaDegreePlayerController::OnInputStarted()
 	StopMovement();
 }
 
-// Triggered every frame when the input is held down
 void AMobaDegreePlayerController::OnSetDestinationTriggered()
 {
-	// We flag that the input is being pressed
 	FollowTime += GetWorld()->GetDeltaSeconds();
 	
-	// We look for the location in the world where the player has pressed the input
 	FHitResult Hit;
 	bool bHitSuccessful = false;
+	
 	if (bIsTouch)
 	{
 		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
@@ -83,6 +84,57 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 	}
 
+	FHitResult HitPawnResult;
+	bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
+
+	if (bHitSuccessfulHitPawn && PlayerCharacter)
+	{
+		AActor* HitActor = HitPawnResult.GetActor();
+		
+		if (!HitActor || HitActor == PlayerCharacter) {return;}
+
+		APawn* HitPawn = Cast<APawn>(HitActor);
+		if (HitPawn)
+		{
+			bPawnClicked = true;
+			
+			if (PlayerCharacter->AttackTarget == HitActor)
+			{
+				GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Emerald, TEXT("Chose Target"));
+			}
+			else
+			{
+				if (PlayerCharacter->AttackTarget)
+				{
+					PlayerCharacter->OldAttackTarget = PlayerCharacter->AttackTarget;
+					ChangeOutline(PlayerCharacter->OldAttackTarget, false);
+				}
+
+				PlayerCharacter->AttackTarget = HitActor;
+				ChangeOutline(PlayerCharacter->AttackTarget, true);
+
+				FVector WorldDirection = (CachedDestination - PlayerCharacter->GetActorLocation()).GetSafeNormal();
+				PlayerCharacter->AddMovementInput(WorldDirection, 1.0, false);
+			}
+
+			return;
+		}
+		else
+		{
+			if (PlayerCharacter->AttackTarget)
+			{
+				PlayerCharacter->OldAttackTarget = PlayerCharacter->AttackTarget;
+				ChangeOutline(PlayerCharacter->OldAttackTarget, false);
+				PlayerCharacter->AttackTarget = nullptr;
+			}
+		}
+		
+	}
+	else
+	{
+		bPawnClicked = false;
+	}
+	
 	// If we hit a surface, cache the location
 	if (bHitSuccessful)
 	{
@@ -100,6 +152,13 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
+	if (bPawnClicked)
+	{
+		bPawnClicked = false;
+		FollowTime = 0.f;
+		return;
+	}
+	
 	// If it was a short press
 	if (FollowTime <= ShortPressThreshold)
 	{

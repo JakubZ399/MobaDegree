@@ -23,6 +23,12 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<AActor> AttackTarget;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<AActor> OldAttackTarget;
+
 
 protected:
 	virtual void BeginPlay() override;
