@@ -2,6 +2,7 @@
 
 
 #include "Minions/MinionBase.h"
+#include "Component/TeamComponent.h"
 #include "GAS/AttributeSets/MinionAttributeSet.h"
 
 AMinionBase::AMinionBase()
@@ -13,6 +14,9 @@ AMinionBase::AMinionBase()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UMinionAttributeSet>(TEXT("AttributeSet"));
+
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
+	TeamComponent->SetIsReplicated(true);
 
 }
 

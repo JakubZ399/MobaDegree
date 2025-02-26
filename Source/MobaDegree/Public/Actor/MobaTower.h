@@ -6,7 +6,6 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
-#include "Team/EGameTeam.h"
 #include "MobaTower.generated.h"
 
 class UCapsuleComponent;
@@ -36,6 +35,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UMinionAttributeSet> AttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UTeamComponent> TeamComponent;
 	
 protected:
 	virtual void BeginPlay() override;

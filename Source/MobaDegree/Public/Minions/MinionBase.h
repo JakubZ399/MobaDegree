@@ -9,6 +9,7 @@
 #include "MinionBase.generated.h"
 
 class UMinionAttributeSet;
+class UTeamComponent;
 
 UCLASS()
 class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface
@@ -18,11 +19,6 @@ class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInter
 public:
 	AMinionBase();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
-protected:
-	virtual void BeginPlay() override;
-
-public:	
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
@@ -30,6 +26,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TObjectPtr<UMinionAttributeSet> AttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UTeamComponent> TeamComponent;
+
+protected:
+	virtual void BeginPlay() override;
 
 private:
 	UPROPERTY(EditAnywhere, Category = "A_GAS")

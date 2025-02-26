@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "GameplayEffect.h"
 #include "GameplayEffectExtension.h"
+#include "Component/TeamComponent.h"
 #include "GAS/AttributeSets/MobaDefaultPlayerAttributeSet.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
@@ -52,6 +53,9 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UMobaDefaultPlayerAttributeSet>(TEXT("AttributeSet"));
+
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
+	TeamComponent->SetIsReplicated(true);
 }
 
 UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const

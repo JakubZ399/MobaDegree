@@ -29,6 +29,9 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<AActor> OldAttackTarget;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UTeamComponent> TeamComponent;
+
 
 protected:
 	virtual void BeginPlay() override;
