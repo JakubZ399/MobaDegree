@@ -6,13 +6,14 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
 class UMobaDefaultPlayerAttributeSet;
 class UTeamComponent;
 
 UCLASS(Blueprintable)
-class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface
+class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface
 {
 	GENERATED_BODY()
 
@@ -32,6 +33,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
 
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
 protected:
 	virtual void BeginPlay() override;

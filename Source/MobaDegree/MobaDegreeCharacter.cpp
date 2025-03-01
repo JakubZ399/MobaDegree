@@ -63,6 +63,11 @@ UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+EGameTeam AMobaDegreeCharacter::GetTeamInterface_Implementation() const
+{
+	return TeamComponent->GetTeam();
+}
+
 void AMobaDegreeCharacter::BeginPlay()
 {
 	Super::BeginPlay();

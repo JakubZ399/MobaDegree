@@ -25,6 +25,11 @@ UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
+EGameTeam AMinionBase::GetTeamInterface_Implementation() const
+{
+	return TeamComponent->GetTeam();
+}
+
 void AMinionBase::BeginPlay()
 {
 	Super::BeginPlay();

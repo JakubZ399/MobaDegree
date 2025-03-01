@@ -6,13 +6,14 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/MobaTeamInterface.h"
 #include "MinionBase.generated.h"
 
 class UMinionAttributeSet;
 class UTeamComponent;
 
 UCLASS()
-class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface
+class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface
 {
 	GENERATED_BODY()
 
@@ -29,6 +30,8 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
+
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
 protected:
 	virtual void BeginPlay() override;

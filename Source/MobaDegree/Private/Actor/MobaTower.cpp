@@ -78,6 +78,11 @@ void AMobaTower::OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent
 	}
 }
 
+EGameTeam AMobaTower::GetTeamInterface_Implementation() const
+{
+	return TeamComponent->GetTeam();
+}
+
 void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);

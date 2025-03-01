@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
+#include "Interfaces/MobaTeamInterface.h"
 #include "MobaTower.generated.h"
 
 class UCapsuleComponent;
@@ -15,7 +16,7 @@ class UAttackComponent;
 class USphereComponent;
 
 UCLASS()
-class MOBADEGREE_API AMobaTower : public APawn, public IAbilitySystemInterface
+class MOBADEGREE_API AMobaTower : public APawn, public IAbilitySystemInterface, public IMobaTeamInterface
 {
 	GENERATED_BODY()
 	
@@ -50,6 +51,8 @@ protected:
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void SpawnTowerShot();
+
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
 	
 private:
 
