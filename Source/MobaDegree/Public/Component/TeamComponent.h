@@ -16,7 +16,8 @@ public:
 	UTeamComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	virtual EGameTeam GetTeamInterface() override;
+	UFUNCTION(BlueprintCallable, Category = "Team")
+	virtual EGameTeam GetTeamInterface_Implementation() override;
 
 protected:
 	virtual void BeginPlay() override;

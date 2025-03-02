@@ -5,7 +5,6 @@
 #include "Component/AttackComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
-#include "GameFramework/Character.h"
 #include "Component/TeamComponent.h"
 #include "GAS/AttributeSets/MinionAttributeSet.h"
 
@@ -57,15 +56,19 @@ void AMobaTower::BeginPlay()
 void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (Cast<APawn>(OtherActor))
+	/*if (Cast<APawn>(OtherActor))
 	{
 		PawnsArray.AddUnique(OtherActor);
-	}
+	}*/
 	if (!AttackComponent->GetAttackTarget() && Cast<APawn>(OtherActor) && !bIsAttacking)
 	{
+		/*IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(OtherActor);
+		if (TeamInterface && TeamInterface->GetTeamInterface_Implementation() != TeamComponent->GetTeam())
+		{*/
 			AttackComponent->SetAttackTarget(OtherActor);
 			bIsAttacking = true;
 			SpawnTowerShot();
+		/*}*/
 	}
 }
 

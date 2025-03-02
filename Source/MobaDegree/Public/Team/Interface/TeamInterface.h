@@ -23,6 +23,6 @@ class MOBADEGREE_API ITeamInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintCallable)
-	virtual EGameTeam GetTeamInterface();
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Team")
+	EGameTeam GetTeamInterface();
 };
