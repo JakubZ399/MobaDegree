@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "MinionsGroupPawn.generated.h"
 
+class AMinionBase;
+
 UCLASS()
 class MOBADEGREE_API AMinionsGroupPawn : public APawn
 {
@@ -25,5 +27,13 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+private:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"), Category = "Setup")
+	TSubclassOf<AMinionBase> MeleeMinionClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess = "true"), Category = "Setup")
+	TSubclassOf<AMinionBase> RangedMinionClass;
 
 };
