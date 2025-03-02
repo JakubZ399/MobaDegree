@@ -19,6 +19,7 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(EditInstanceOnly)
 	EGameTeam Team{ EGameTeam::None };
 
 public:
