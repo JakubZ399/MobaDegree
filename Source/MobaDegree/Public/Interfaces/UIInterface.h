@@ -3,13 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Team/EGameTeam.h"
 #include "UObject/Interface.h"
-#include "TeamInterface.generated.h"
+#include "UIInterface.generated.h"
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
-class UTeamInterface : public UInterface
+class UUIInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -17,12 +16,13 @@ class UTeamInterface : public UInterface
 /**
  * 
  */
-class MOBADEGREE_API ITeamInterface
+class MOBADEGREE_API IUIInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	UFUNCTION(BlueprintCallable)
-	virtual EGameTeam GetTeamInterface();
+
+	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	void SetBarValue(float BarValue);
 };
