@@ -3,7 +3,6 @@
 #include "MobaDegreeCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Camera/CameraComponent.h"
-#include "Components/DecalComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
@@ -11,9 +10,8 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "GameplayEffect.h"
-#include "GameplayEffectExtension.h"
 #include "Component/TeamComponent.h"
-#include "GAS/AttributeSets/MobaDefaultPlayerAttributeSet.h"
+#include "GAS/AttributeSets/MobaAttributeSet.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
@@ -52,7 +50,7 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMobaDefaultPlayerAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);

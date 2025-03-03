@@ -9,7 +9,8 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MinionBase.generated.h"
 
-class UMinionAttributeSet;
+class UWidgetComponent;
+class UMobaAttributeSet;
 class UTeamComponent;
 
 UCLASS()
@@ -26,10 +27,13 @@ public:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
-	TObjectPtr<UMinionAttributeSet> AttributeSet;
+	TObjectPtr<UMobaAttributeSet> AttributeSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 
 	virtual EGameTeam GetTeamInterface_Implementation() const override;
 

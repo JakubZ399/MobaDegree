@@ -6,7 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Component/TeamComponent.h"
-#include "GAS/AttributeSets/MinionAttributeSet.h"
+#include "GAS/AttributeSets/MobaAttributeSet.h"
 
 AMobaTower::AMobaTower()
 {
@@ -31,7 +31,7 @@ AMobaTower::AMobaTower()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMinionAttributeSet>("Attribute Set");
+	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>("Attribute Set");
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);

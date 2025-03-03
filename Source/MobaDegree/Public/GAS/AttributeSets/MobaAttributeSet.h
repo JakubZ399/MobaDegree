@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "AttributeSet.h"
 #include "AbilitySystemComponent.h"
-#include "MinionAttributeSet.generated.h"
+#include "MobaAttributeSet.generated.h"
 
 /**
  * 
@@ -18,37 +18,45 @@ GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
 UCLASS()
-class MOBADEGREE_API UMinionAttributeSet : public UAttributeSet
+class MOBADEGREE_API UMobaAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
 
 public:
-	UMinionAttributeSet();
+	UMobaAttributeSet();
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, Health)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, Health)
 
 	UPROPERTY(ReplicatedUsing = OnRep_MaxHealth)
 	FGameplayAttributeData MaxHealth;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, MaxHealth)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, MaxHealth)
 
+	UPROPERTY(ReplicatedUsing = OnRep_Mana)
+	FGameplayAttributeData Mana;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, Mana)
+
+	UPROPERTY(ReplicatedUsing = OnRep_MaxMana)
+	FGameplayAttributeData MaxMana;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, MaxMana)
+	
 	UPROPERTY(ReplicatedUsing = OnRep_AttackDamage)
 	FGameplayAttributeData AttackDamage;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, AttackDamage)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AttackDamage)
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttackRange)
 	FGameplayAttributeData AttackRange;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, AttackRange)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AttackRange)
 
 	UPROPERTY(ReplicatedUsing = OnRep_AttackSpeed)
 	FGameplayAttributeData AttackSpeed;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, AttackSpeed)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AttackSpeed)
 
 	UPROPERTY(ReplicatedUsing = OnRep_MovementSpeed)
 	FGameplayAttributeData MovementSpeed;
-	ATTRIBUTE_ACCESSORS(UMinionAttributeSet, MovementSpeed)
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, MovementSpeed)
 
 private:
 
@@ -57,6 +65,12 @@ private:
 	
 	UFUNCTION()
 	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth);
+
+	UFUNCTION()
+	void OnRep_Mana(const FGameplayAttributeData& OldMana);
+
+	UFUNCTION()
+	void OnRep_MaxMana(const FGameplayAttributeData& OldMaxMana);
 
 	UFUNCTION()
 	void OnRep_AttackDamage(const FGameplayAttributeData& OldAttackDamage);

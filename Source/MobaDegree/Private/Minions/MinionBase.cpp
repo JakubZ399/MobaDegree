@@ -3,7 +3,8 @@
 
 #include "Minions/MinionBase.h"
 #include "Component/TeamComponent.h"
-#include "GAS/AttributeSets/MinionAttributeSet.h"
+#include "Components/WidgetComponent.h"
+#include "GAS/AttributeSets/MobaAttributeSet.h"
 
 AMinionBase::AMinionBase()
 {
@@ -13,10 +14,13 @@ AMinionBase::AMinionBase()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMinionAttributeSet>(TEXT("AttributeSet"));
+	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
+
+	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("HealthBarWidgetComponent");
+	HealthBarWidgetComponent->SetIsReplicated(true);
 
 }
 

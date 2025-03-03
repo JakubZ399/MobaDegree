@@ -9,6 +9,7 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
+class UMobaAttributeSet;
 class UMobaDefaultPlayerAttributeSet;
 class UTeamComponent;
 
@@ -42,7 +43,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
-	TObjectPtr<UMobaDefaultPlayerAttributeSet> AttributeSet;
+	TObjectPtr<UMobaAttributeSet> AttributeSet;
 
 	void InitializeAttribute();
 

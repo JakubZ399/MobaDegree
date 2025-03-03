@@ -10,7 +10,7 @@
 #include "MobaTower.generated.h"
 
 class UCapsuleComponent;
-class UMinionAttributeSet;
+class UMobaAttributeSet;
 class UTeamComponent;
 class UAttackComponent;
 class USphereComponent;
@@ -35,7 +35,7 @@ public:
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UMinionAttributeSet> AttributeSet;
+	TObjectPtr<UMobaAttributeSet> AttributeSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
