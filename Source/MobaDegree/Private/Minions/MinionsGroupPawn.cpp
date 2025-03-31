@@ -1,34 +1,151 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #include "Minions/MinionsGroupPawn.h"
 
-// Sets default values
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "Component/TeamComponent.h"
+#include "GameFramework/FloatingPawnMovement.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Minions/MinionBase.h"
+#include "Perception/PawnSensingComponent.h"
+
 AMinionsGroupPawn::AMinionsGroupPawn()
 {
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
+	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComponent"));
+
+	MovementComponent->MaxSpeed = 300.f;
+
+	PawnSensingComponent->HearingThreshold = 0.f;
+	PawnSensingComponent->LOSHearingThreshold = 0.f;
+	PawnSensingComponent->SightRadius = 1000.f;
+	PawnSensingComponent->SetPeripheralVisionAngle(40.f);
+
+#pragma region MinionsSpawnPoints
+	SpawnPointsMinion = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinion"));
+	SpawnPointsMinion->SetupAttachment(RootComponent);
+
+	SpawnPointMinionMelee = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionMeele"));
+	SpawnPointMinionMelee->SetupAttachment(SpawnPointsMinion);
+
+	SpawnPointMinionRanged = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionRanged"));
+	SpawnPointMinionRanged->SetupAttachment(SpawnPointsMinion);
+
+	SpawnPoint_Melee_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Middle"));
+	SpawnPoint_Melee_Middle->SetupAttachment(SpawnPointMinionMelee);
+
+	SpawnPoint_Melee_Right = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Right"));
+	SpawnPoint_Melee_Right->SetupAttachment(SpawnPointMinionMelee);
+
+	SpawnPoint_Melee_Left = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Left"));
+	SpawnPoint_Melee_Left->SetupAttachment(SpawnPointMinionMelee);
+	
+	SpawnPoint_Ranged_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Middle"));
+	SpawnPoint_Ranged_Middle->SetupAttachment(SpawnPointMinionRanged);
+
+	SpawnPoint_Ranged_Right = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Right"));
+	SpawnPoint_Ranged_Right->SetupAttachment(SpawnPointMinionRanged);
+	
+	SpawnPoint_Ranged_Left = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Left"));
+	SpawnPoint_Ranged_Left->SetupAttachment(SpawnPointMinionRanged);
+#pragma endregion
 }
 
-// Called when the game starts or when spawned
+
 void AMinionsGroupPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	PawnSensingComponent->OnSeePawn.AddDynamic(this, &AMinionsGroupPawn::OnSeePawn);
 }
 
-// Called every frame
 void AMinionsGroupPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 }
 
-// Called to bind functionality to input
 void AMinionsGroupPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+void AMinionsGroupPawn::SetAttackTargetBlackboard(AActor* Target, FName Key)
+{
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+		{
+			BlackboardComponent->SetValueAsObject(Key, Target);
+		}
+	}
+}
+
+void AMinionsGroupPawn::Initialize()
+{
+	if (!EnemyLaneTarget) { UE_LOG(LogTemp, Warning, TEXT("MinionsGroupSpawn: Setup EnemyLaneTarget")); return;}
+
+	FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), EnemyLaneTarget->GetActorLocation());
+	SetActorRotation(NewRotation);
+
+	SetAttackTargetBlackboard(EnemyLaneTarget, EnemyLaneTargetKey);
+	MinionsSpawn(MeleeMinionClass, SpawnPointMinionMelee);
+	MinionsSpawn(RangedMinionClass, SpawnPointMinionRanged);
+}
+
+void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent)
+{
+	if (!MinionClass || !SpawnPointSceneComponent) return;
+	SpawnPointSceneComponent->GetChildrenComponents(false, SpawnPoints);
+
+	if (SpawnPoints.Num() > 0)
+	{
+		for (USceneComponent* SpawnPoint : SpawnPoints)
+		{
+			FActorSpawnParameters SpawnParameters;
+			AMinionBase* SpawnedMinion = GetWorld()->SpawnActor<AMinionBase>(MinionClass, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation(), SpawnParameters);
+
+			if (SpawnedMinion)
+			{
+				SpawnedMinion->TeamComponent->SetTeam(Team);
+				SpawnedMinion->HomeBase = SpawnPoint;
+				SpawnedMinion->ChangeMesh();
+				SpawnedMinions.AddUnique(SpawnedMinion);
+				SpawnedMinion->OnMinionDeath.AddDynamic(this, &AMinionsGroupPawn::OnMinionDeath);
+				SpawnedMinion->BindOnAttackTarget(this);
+			}
+		}
+	}
+}
+
+void AMinionsGroupPawn::OnMinionDeath()
+{
+	SpawnPoints.Pop();
+	if (SpawnPoints.Num() == 0)
+	{
+		Destroy();
+	}
+}
+
+void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
+{
+	if (AttackTarget) return;
+
+	if (IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn))
+	{
+		EGameTeam PawnTeam = TeamInterface->GetTeamInterface_Implementation();
+
+		if (PawnTeam != Team && PawnTeam != EGameTeam::None)
+		{
+			AttackTarget = Pawn;
+
+			SetAttackTargetBlackboard(AttackTarget, EnemyLaneTargetKey);
+			OnAttackTargetSet.Broadcast(AttackTarget);
+		}
+	}
 }
 

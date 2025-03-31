@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #pragma once
 
@@ -78,10 +78,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	USceneComponent* HomeBase;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere)
 	FOnMinionDeath OnMinionDeath;
 
-	UPROPERTY(BlueprintAssignable)
+	UPROPERTY(BlueprintAssignable, VisibleAnywhere)
 	FOnAttackEnd OnAttackEnd;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
