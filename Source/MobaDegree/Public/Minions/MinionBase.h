@@ -6,15 +6,22 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
+#include "Interfaces/MinionAI.h"
+#include "Interfaces/MobaInteraction.h"
 #include "Interfaces/MobaTeamInterface.h"
 #include "MinionBase.generated.h"
 
+class UBlackboardComponent;
 class UWidgetComponent;
 class UMobaAttributeSet;
 class UTeamComponent;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMinionDeath);
+
+
 UCLASS()
-class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface
+class MOBADEGREE_API AMinionBase : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface, public IMobaInteraction, public IMinionAI
 {
 	GENERATED_BODY()
 
@@ -35,7 +42,57 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 
-	virtual EGameTeam GetTeamInterface_Implementation() const override;
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<USkeletalMesh> BlueMinionMesh;
+	
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<USkeletalMesh> RedMinionMesh;
+
+	UFUNCTION(BlueprintCallable)
+	void ChangeMesh();
+
+	UFUNCTION(BlueprintCallable)
+	void BindOnAttackTarget(class AMinionsGroupPawn* MinionsGroup);
+
+	UFUNCTION(BlueprintCallable)
+	void SetupAttackTarget(AActor* AttackTargetRef);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	TObjectPtr<AActor> AttackTarget;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	TSubclassOf<UGameplayAbility> BaseAttack;
+	
+	UFUNCTION(BlueprintCallable)
+	void Attack();
+
+	UFUNCTION(BlueprintCallable)
+	void SetGroupPosition(FVector GroupPositionRef);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	FVector GroupPosition;
+
+	UFUNCTION(BlueprintCallable)
+	UBlackboardComponent* GetBlackboardComponent();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	USceneComponent* HomeBase;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnMinionDeath OnMinionDeath;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnAttackEnd OnAttackEnd;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<UParticleSystem> DeathParticle;
+
+	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+
+	virtual void CallOnAttackEndInterface_Implementation() override;
+
+
+	
 
 protected:
 	virtual void BeginPlay() override;
@@ -43,4 +100,28 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, Category = "A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
+	FName GroupPositionKey{"GroupPosition"};
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
+	FName AttackTargetKey{"AttackTarget"};
+
+	bool DoOnce{false};
+
+public:
+
+	FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }
+	
+	UFUNCTION(BlueprintCallable)
+	float GetAttackRange();
+
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
+
+	virtual AMinionBase* GetMinionRef_Implementation() override;
+
+	virtual float GetAttackRadiusAttribute_Implementation() override;
+
+	virtual void EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshComponent, AActor*& AttackTargetRef, AActor*& SelfRef) override;
+	
 };
