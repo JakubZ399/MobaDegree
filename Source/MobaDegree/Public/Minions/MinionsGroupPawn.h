@@ -101,4 +101,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
 	FName EnemyLaneTargetKey{"EnemyLaneTarget"};
 
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE void SetEnemyLaneTarget(AActor* Target) { EnemyLaneTarget = Target; }
+
 };
