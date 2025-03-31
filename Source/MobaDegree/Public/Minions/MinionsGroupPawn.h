@@ -33,7 +33,7 @@ public:
 
 	//To setup
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
-	AActor* EnemyLaneTarget;
+	TObjectPtr<AActor> EnemyLaneTarget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<UFloatingPawnMovement> MovementComponent;
@@ -45,7 +45,7 @@ public:
 	TArray<USceneComponent*> SpawnPoints;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
-	APawn* AttackTarget;
+	TObjectPtr<APawn> AttackTarget;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	TArray<AMinionBase*> SpawnedMinions;

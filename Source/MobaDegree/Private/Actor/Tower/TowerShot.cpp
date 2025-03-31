@@ -3,17 +3,42 @@
 
 #include "Actor/Tower/TowerShot.h"
 
+#include "AbilitySystemInterface.h"
+#include "Components/SphereComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 ATowerShot::ATowerShot()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("Ability System Component");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
+	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("Mesh Component");
+	SetRootComponent(MeshComponent);
+
+	SphereComponent = CreateDefaultSubobject<USphereComponent>("Sphere Component");
+	SphereComponent->SetupAttachment(GetRootComponent());
+
+}
+
+void ATowerShot::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!AttackTargetActor)
+	{
+		Destroy();
+	}
+}
+
+void ATowerShot::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ATowerShot::SphereOverlap);
 }
 
 void ATowerShot::AttackTarget(AActor* Target)
@@ -41,6 +66,24 @@ void ATowerShot::UpdateAlpha()
 	if (AlphaToInterpolation >= 1.0f)
 	{
 		GetWorld()->GetTimerManager().ClearTimer(LerpTimer);
+	}
+}
+
+void ATowerShot::SphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor == AttackTargetActor && Cast<IAbilitySystemInterface>(OtherActor))
+	{
+		if (UAbilitySystemComponent* TargetASC = Cast<IAbilitySystemInterface>(OtherActor)->GetAbilitySystemComponent())
+		{
+			if (TowerShotEffect)
+			{
+				FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(TowerShotEffect, 1, TargetASC->MakeEffectContext());
+				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+				Destroy();
+			}
+
+		}
 	}
 }
 

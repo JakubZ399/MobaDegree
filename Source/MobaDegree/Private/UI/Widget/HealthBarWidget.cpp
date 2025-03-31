@@ -1,5 +1,12 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 
 #include "UI/Widget/HealthBarWidget.h"
+#include "Components/ProgressBar.h"
+
+void UHealthBarWidget::SetBarValue_Implementation(float BarValue)
+{
+	HealthProgressBar->SetPercent(BarValue);
+}
+
 

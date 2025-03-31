@@ -18,8 +18,3 @@ void UTeamComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 }
-
-EGameTeam UTeamComponent::GetTeamInterface_Implementation()
-{
-	return GetTeam();
-}

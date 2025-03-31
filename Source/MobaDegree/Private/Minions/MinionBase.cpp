@@ -1,10 +1,8 @@
 // 2025 Jakub Żurawik. All Rights Reserved.
 
-
 #include "Minions/MinionBase.h"
 
 #include "AIController.h"
-#include "AIHelpers.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Component/TeamComponent.h"
 #include "Components/WidgetComponent.h"
@@ -12,8 +10,6 @@
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "Minions/MinionsGroupPawn.h"
-#include "Misc/MapErrors.h"
-#include "MobaDegree/MobaDegree.h"
 
 AMinionBase::AMinionBase()
 {

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #pragma once
 
@@ -6,9 +6,13 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
+#include "Interfaces/MobaInteraction.h"
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaTower.generated.h"
 
+class ATowerShot;
+class UHealthBarWidget;
+class UWidgetComponent;
 class UCapsuleComponent;
 class UMobaAttributeSet;
 class UTeamComponent;
@@ -16,7 +20,7 @@ class UAttackComponent;
 class USphereComponent;
 
 UCLASS()
-class MOBADEGREE_API AMobaTower : public APawn, public IAbilitySystemInterface, public IMobaTeamInterface
+class MOBADEGREE_API AMobaTower : public APawn, public IAbilitySystemInterface, public IMobaTeamInterface, public IMobaInteraction
 {
 	GENERATED_BODY()
 	
@@ -39,6 +43,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
+
+	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+ 
 	
 protected:
 	virtual void BeginPlay() override;
@@ -49,33 +56,53 @@ protected:
 	UFUNCTION()
 	void OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION(BlueprintImplementableEvent)
+	UFUNCTION(BlueprintCallable)
 	void SpawnTowerShot();
-
+	
 	virtual EGameTeam GetTeamInterface_Implementation() const override;
 	
 private:
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> CapsuleComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> TowerMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> TowerRadius;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWidgetComponent> HealthBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Tower|Setup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+
+	UPROPERTY(EditAnywhere, Category = "Tower|Setup", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UGameplayAbility> TowerAttackClass;
+
+	UPROPERTY(EditAnywhere, Category = "Tower|Setup")
+	TSubclassOf<UGameplayEffect> InitEffect;
+
+	UPROPERTY(EditAnywhere, Category = "Tower|Setup")
+	TSubclassOf<ATowerShot> TowerShotClass;
+	
+	UPROPERTY()
+	TScriptInterface<class IUIInterface> HealthBarWidgetInterface;
 
 	FTransform ProjectileSpawnerTransform;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	bool bIsAttacking{ false };
-
-	UPROPERTY(EditAnywhere, Category = "A_GAS")
-	TSubclassOf<UGameplayEffect> InitEffect;
-
+	
 	TArray<AActor*> PawnsArray;
+
+	bool bIsLoaded{false};
+
 
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE FTransform GetProjectileSpawnerTransform() const { return ProjectileSpawnerTransform; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetAttributeTower(FGameplayAttribute AttributeType);
 };

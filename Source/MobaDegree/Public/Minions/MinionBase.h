@@ -76,7 +76,7 @@ public:
 	UBlackboardComponent* GetBlackboardComponent();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	USceneComponent* HomeBase;
+	TObjectPtr<USceneComponent> HomeBase;
 
 	UPROPERTY(BlueprintAssignable, VisibleAnywhere)
 	FOnMinionDeath OnMinionDeath;
