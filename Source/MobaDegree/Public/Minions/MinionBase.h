@@ -30,11 +30,16 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void Tick(float DeltaTime) override;
 
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
-	TObjectPtr<UMobaAttributeSet> AttributeSet;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS", Instanced)
+	TObjectPtr<UMobaAttributeSet> MobaAttributeSet;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TSubclassOf<UGameplayEffect> InitEffect;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
@@ -89,6 +94,7 @@ public:
 
 	virtual void ShowOutline_Implementation(bool EnableOutline) override;
 
+	UFUNCTION(BlueprintCallable)
 	virtual void CallOnAttackEndInterface_Implementation() override;
 
 
@@ -96,10 +102,9 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "A_GAS")
-	TSubclassOf<UGameplayEffect> InitEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
 	FName GroupPositionKey{"GroupPosition"};
@@ -120,6 +125,7 @@ public:
 
 	virtual AMinionBase* GetMinionRef_Implementation() override;
 
+	UFUNCTION(BlueprintCallable)
 	virtual float GetAttackRadiusAttribute_Implementation() override;
 
 	virtual void EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshComponent, AActor*& AttackTargetRef, AMinionBase*& SelfRef) override;

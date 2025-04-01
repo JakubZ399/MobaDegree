@@ -25,6 +25,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void SetAttackTargetBlackboard(AActor* Target, FName Key);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void TestAIBlackboard(AActor* Target);
+
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnAttackTargetSet OnAttackTargetSet;
 

@@ -60,6 +60,10 @@ void AMinionsGroupPawn::BeginPlay()
 
 	PawnSensingComponent->OnSeePawn.AddDynamic(this, &AMinionsGroupPawn::OnSeePawn);
 
+	PawnSensingComponent->SensingInterval = 0.25f;
+	PawnSensingComponent->bOnlySensePlayers = false;
+	PawnSensingComponent->bSeePawns = true;
+
 	AttackTarget = nullptr;
 }
 
@@ -125,11 +129,12 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 
 void AMinionsGroupPawn::OnMinionDeath()
 {
-	SpawnPoints.Pop();
+	AttackTarget = nullptr;
+	/*SpawnPoints.Pop();
 	if (SpawnPoints.Num() == 0)
 	{
 		Destroy();
-	}
+	}*/
 }
 
 void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
@@ -143,8 +148,7 @@ void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 		if (PawnTeam != Team && PawnTeam != EGameTeam::None)
 		{
 			AttackTarget = Pawn;
-
-			SetAttackTargetBlackboard(AttackTarget, EnemyLaneTargetKey);
+			SetAttackTargetBlackboard(Pawn, "AttackTarget");
 			OnAttackTargetSet.Broadcast(AttackTarget);
 		}
 	}

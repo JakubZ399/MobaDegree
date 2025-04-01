@@ -14,12 +14,12 @@
 AMinionBase::AMinionBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
+	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("MobaAttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
@@ -27,6 +27,72 @@ AMinionBase::AMinionBase()
 	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("HealthBarWidgetComponent");
 	HealthBarWidgetComponent->SetIsReplicated(true);
 
+}
+
+void AMinionBase::BeginPlay()
+{
+	Super::BeginPlay();
+
+	checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent is not set on Minion!"));
+	
+	/*MobaAttributeSet = NewObject<UMobaAttributeSet>(this, TEXT("AttributeSet"));
+	AbilitySystemComponent->AddAttributeSetSubobject<UMobaAttributeSet>(MobaAttributeSet);*/
+
+	checkf(MobaAttributeSet, TEXT("AttributeSet is not set on Minion!"));
+	checkf(InitEffect, TEXT("InitEffect is not set on Minion!"));
+	
+	//Initialize Attributes
+	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
+	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+
+	//Setup MovementSpeed
+	bool Found;
+	float MovementSpeedValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetMovementSpeedAttribute(), Found);
+	if (Found)
+	{
+		GetCharacterMovement()->MaxWalkSpeed = MovementSpeedValue;
+	}
+	
+	AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
+}
+
+void AMinionBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	OnMinionDeath.Broadcast();
+}
+
+
+void AMinionBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (HomeBase)
+	{
+		SetGroupPosition(HomeBase->GetComponentLocation());
+
+		bool Found;
+		float HealthValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetHealthAttribute(), Found);
+		if (HealthValue <= 0)
+		{
+			if (!DoOnce)
+			{
+				DoOnce = true;
+
+				AAIController* AIController = Cast<AAIController>(GetController());
+				if (AIController)
+				{
+					AIController->UnPossess();
+
+					SetLifeSpan(0.2);
+
+					UGameplayStatics::SpawnEmitterAtLocation(this, DeathParticle, GetActorLocation());
+				}
+			}
+		}
+	}
 }
 
 UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
@@ -76,7 +142,7 @@ void AMinionBase::BindOnAttackTarget(class AMinionsGroupPawn* MinionsGroup)
 
 void AMinionBase::SetupAttackTarget(AActor* AttackTargetRef)
 {
-	if (!AttackTarget) return;
+	//if (!AttackTarget) return;
 	
 	AttackTarget = AttackTargetRef;
 
@@ -152,63 +218,11 @@ void AMinionBase::EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshCompon
 	}
 }
 
-void AMinionBase::BeginPlay()
-{
-	Super::BeginPlay();
 
-	//Initialize Attributes
-	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-
-	//Setup MovementSpeed
-	bool Found;
-	float MovementSpeedValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetMovementSpeedAttribute(), Found);
-	if (Found)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = MovementSpeedValue;
-	}
-	
-	AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
-}
-
-
-
-void AMinionBase::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	if (HomeBase)
-	{
-		SetGroupPosition(HomeBase->GetComponentLocation());
-
-		bool Found;
-		float HealthValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetHealthAttribute(), Found);
-		if (HealthValue <= 0)
-		{
-			if (!DoOnce)
-			{
-				DoOnce = true;
-
-				AAIController* AIController = Cast<AAIController>(GetController());
-				if (AIController)
-				{
-					//AIController->bStopAILogicOnUnposses = true;
-					AIController->UnPossess();
-
-					SetLifeSpan(0.2);
-
-					UGameplayStatics::SpawnEmitterAtLocation(this, DeathParticle, GetActorLocation());
-					
-				}
-			}
-		}
-	}
-
-}
 
 float AMinionBase::GetAttackRange()
 {
-	bool Found;
-	return AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetAttackRangeAttribute(), Found);
+	//bool Found;
+	return 500.f;
+	//return AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetAttackRangeAttribute(), Found);
 }
