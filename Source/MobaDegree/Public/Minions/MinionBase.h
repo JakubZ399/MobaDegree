@@ -42,10 +42,10 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<USkeletalMesh> BlueMinionMesh;
 	
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<USkeletalMesh> RedMinionMesh;
 
 	UFUNCTION(BlueprintCallable)
@@ -60,7 +60,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<AActor> AttackTarget;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TSubclassOf<UGameplayAbility> BaseAttack;
 	
 	UFUNCTION(BlueprintCallable)
@@ -101,10 +101,10 @@ private:
 	UPROPERTY(EditAnywhere, Category = "A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
 	FName GroupPositionKey{"GroupPosition"};
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
 	FName AttackTargetKey{"AttackTarget"};
 
 	bool DoOnce{false};
@@ -122,6 +122,6 @@ public:
 
 	virtual float GetAttackRadiusAttribute_Implementation() override;
 
-	virtual void EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshComponent, AActor*& AttackTargetRef, AActor*& SelfRef) override;
+	virtual void EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshComponent, AActor*& AttackTargetRef, AMinionBase*& SelfRef) override;
 	
 };

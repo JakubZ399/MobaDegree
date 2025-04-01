@@ -11,6 +11,7 @@
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
 #include "Engine/LocalPlayer.h"
+#include "Interfaces/MobaInteraction.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -147,6 +148,14 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 	{
 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
+	}
+}
+
+void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
+{
+	if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OutlineActor))
+	{
+		MobaInteraction->ShowOutline_Implementation(ShowOutline);
 	}
 }
 

@@ -13,5 +13,12 @@ UCLASS()
 class MOBADEGREE_API AMinionsAIController : public AAIController
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
+
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<class UBehaviorTree> BehaviorTree;
 	
 };

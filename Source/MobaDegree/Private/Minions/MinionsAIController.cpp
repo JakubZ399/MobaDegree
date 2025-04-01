@@ -3,3 +3,9 @@
 
 #include "Minions/MinionsAIController.h"
 
+void AMinionsAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	RunBehaviorTree(BehaviorTree);
+}

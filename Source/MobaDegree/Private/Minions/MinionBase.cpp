@@ -142,7 +142,7 @@ float AMinionBase::GetAttackRadiusAttribute_Implementation()
 }
 
 void AMinionBase::EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshComponent, AActor*& AttackTargetRef,
-	AActor*& SelfRef)
+	AMinionBase*& SelfRef)
 {
 	if (GetMesh())
 	{

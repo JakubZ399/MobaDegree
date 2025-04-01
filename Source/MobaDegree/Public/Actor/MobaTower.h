@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemComponent.h"
+#include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Actor.h"
 #include "Interfaces/MobaInteraction.h"
@@ -38,8 +39,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UMobaAttributeSet> AttributeSet;
+	UPROPERTY(Transient)
+	UMobaAttributeSet* AttributeSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
@@ -48,6 +49,7 @@ public:
  
 	
 protected:
+	void InitializeAttribute();
 	virtual void BeginPlay() override;
 
 	UFUNCTION()

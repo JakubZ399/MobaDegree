@@ -2,7 +2,9 @@
 
 
 #include "Actor/MobaTower.h"
-
+#include "GAS/AttributeSets/MobaAttributeSet.h"
+#include "GameplayEffect.h"
+#include "GameplayEffectExtension.h"
 #include "Actor/Tower/TowerShot.h"
 #include "Component/AttackComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -35,7 +37,7 @@ AMobaTower::AMobaTower()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>("Attribute Set");
+	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
@@ -50,14 +52,13 @@ AMobaTower::AMobaTower()
 void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	
 	if (HealthBarWidgetInterface && bIsLoaded)
 	{
-		//float MaxHealth = GetAttributeTower(AttributeSet->GetMaxHealthAttribute());
-		//float CurrentHealth = (MaxHealth > 0.f) ? GetAttributeTower(AttributeSet->GetHealthAttribute()) / MaxHealth : 0.f;
-
-		float MaxHealth = AttributeSet->GetMaxHealth();
-		float CurrentHealth = (MaxHealth > 0.f) ? AttributeSet->GetHealth() / MaxHealth : 0.f;
+		float MaxHealth = GetAttributeTower(UMobaAttributeSet::GetMaxHealthAttribute());
+		GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("MaxHealth: %f"), MaxHealth));
+		
+		float CurrentHealth = (MaxHealth > 0.f) ? GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) / MaxHealth : 0.f;
 		IUIInterface::Execute_SetBarValue(HealthBarWidgetInterface.GetObject(), CurrentHealth);
 
 		if (GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) <= 0.f)
@@ -71,6 +72,9 @@ void AMobaTower::Tick(float DeltaTime)
 void AMobaTower::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	
+	InitializeAttribute();
 
 	checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent is not set on Tower!"));
 
@@ -78,10 +82,6 @@ void AMobaTower::BeginPlay()
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
 
 	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
-
-	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	
 	bIsLoaded = true;
 	
@@ -100,6 +100,16 @@ void AMobaTower::BeginPlay()
 	if (TowerAttackClass)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
+	}
+}
+
+void AMobaTower::InitializeAttribute()
+{
+	if (AbilitySystemComponent && AttributeSet && InitEffect)
+	{
+		FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
+		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
 }
 

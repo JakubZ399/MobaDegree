@@ -28,7 +28,7 @@ public:
 	void CallOnAttackEndInterface();
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
-	void EnemyInfoAI(USkeletalMeshComponent* &MeshComponent, AActor* &AttackTargetRef, AActor* &SelfRef);
+	void EnemyInfoAI(USkeletalMeshComponent* &MeshComponent, AActor* &AttackTargetRef, AMinionBase* &SelfRef);
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	float GetAttackRadiusAttribute();

@@ -15,12 +15,11 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	PrimaryActorTick.bCanEverTick = true;
 
 	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
-	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComponent"));
-
 	MovementComponent->MaxSpeed = 300.f;
-
-	PawnSensingComponent->HearingThreshold = 0.f;
-	PawnSensingComponent->LOSHearingThreshold = 0.f;
+	
+	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComponent"));
+	//PawnSensingComponent->HearingThreshold = 0.f;
+	//PawnSensingComponent->LOSHearingThreshold = 0.f;
 	PawnSensingComponent->SightRadius = 1000.f;
 	PawnSensingComponent->SetPeripheralVisionAngle(40.f);
 
@@ -60,6 +59,8 @@ void AMinionsGroupPawn::BeginPlay()
 	Super::BeginPlay();
 
 	PawnSensingComponent->OnSeePawn.AddDynamic(this, &AMinionsGroupPawn::OnSeePawn);
+
+	AttackTarget = nullptr;
 }
 
 void AMinionsGroupPawn::Tick(float DeltaTime)
