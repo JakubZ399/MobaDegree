@@ -56,14 +56,12 @@ void AMobaTower::Tick(float DeltaTime)
 	if (HealthBarWidgetInterface && bIsLoaded)
 	{
 		float MaxHealth = GetAttributeTower(UMobaAttributeSet::GetMaxHealthAttribute());
-		GEngine->AddOnScreenDebugMessage(-1, 0.1, FColor::Red, FString::Printf(TEXT("MaxHealth: %f"), MaxHealth));
-		
 		float CurrentHealth = (MaxHealth > 0.f) ? GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) / MaxHealth : 0.f;
 		IUIInterface::Execute_SetBarValue(HealthBarWidgetInterface.GetObject(), CurrentHealth);
 
 		if (GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) <= 0.f)
 		{
-			//Destroy();
+			Destroy();
 		}
 	}
 

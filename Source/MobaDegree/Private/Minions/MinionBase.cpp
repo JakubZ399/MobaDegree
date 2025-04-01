@@ -36,12 +36,6 @@ void AMinionBase::BeginPlay()
 	checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent is not set on Minion!"));
 	checkf(InitEffect, TEXT("InitEffect is not set on Minion!"));
 	checkf(MobaAttributeSet, TEXT("AttributeSet is not set on Minion!"));
-	
-	if (!InitEffect)
-	{
-		UE_LOG(LogTemp, Error, TEXT("InitEffect is null for %s"), *GetName());
-		return;
-	}
 
 	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1, EffectContextHandle);
@@ -53,40 +47,12 @@ void AMinionBase::BeginPlay()
 	}
 
 	FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-	if (!ActiveGEHandle.IsValid())
-	{
-		// Sprawdźmy, czy mimo błędu wartość jest poprawna
-		bool Found;
-		float Value = AbilitySystemComponent->GetGameplayAttributeValue(
-			UMobaAttributeSet::GetAttackRangeAttribute(), Found);
-    
-		if (Found && Value == 400.0f)
-		{
-			// Wartość jest prawidłowa, więc ignorujemy błąd
-			UE_LOG(LogTemp, Warning, TEXT("GE error on %s but attributes are correct"), *GetName());
-		}
-		else
-		{
-			// Jest prawdziwy problem z wartościami
-			UE_LOG(LogTemp, Error, TEXT("Failed to apply GameplayEffect on %s"), *GetName());
-		}
-	}
-
-	bool FoundTest;
-	float AttackRangeValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetAttackRangeAttribute(), FoundTest);
-	UE_LOG(LogTemp, Warning, TEXT("AttackRange after initialization: %f"), AttackRangeValue);
-
-	//Setup MovementSpeed
 	bool Found;
 	float MovementSpeedValue = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetMovementSpeedAttribute(), Found);
 	if (Found)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = MovementSpeedValue;
 	}
-	
-	float RangeFromGetter = GetAttackRange();
-	UE_LOG(LogTemp, Warning, TEXT("%s: GetAttackRange() = %f vs direct = %f"), 
-		   *GetName(), RangeFromGetter, AttackRangeValue);
 	
 	AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
 }
@@ -190,9 +156,9 @@ void AMinionBase::Attack()
 {
 	AbilitySystemComponent->TryActivateAbilityByClass(BaseAttack);
 
-	if (GetWorld())
+	if (GetWorld() && AttackTarget)
 	{
-		DrawDebugSphere(GetWorld(), AttackTarget->GetActorLocation(), 50.f, 12, FColor::Blue, true, 2.f);
+		DrawDebugSphere(GetWorld(), AttackTarget->GetActorLocation(), 50.f, 12, FColor::Blue, true, 1.f);
 	}
 }
 
@@ -252,21 +218,12 @@ void AMinionBase::EnemyInfoAI_Implementation(USkeletalMeshComponent* &MeshCompon
 	}
 }
 
-
-
 float AMinionBase::GetAttackRange()
 {
-	if (!AbilitySystemComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("%s has no AbilitySystemComponent!"), *GetName());
-		return 500.f; // Wartość fallback
-	}
-    
 	bool Found = false;
 	float Range = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetAttackRangeAttribute(), Found);
-    
-	UE_LOG(LogTemp, Display, TEXT("%s GetAttackRange() returning: %f (Found: %d)"), 
-		   *GetName(), Found ? Range : 500.f, Found ? 1 : 0);
-    
-	return Found ? Range : 500.f;
+
+	GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Red, FString::Printf(TEXT("Range: %f"), Range));
+
+	return Range;
 }

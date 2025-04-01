@@ -7,12 +7,14 @@
 #include "Team/EGameTeam.h"
 #include "MinionsGroupPawn.generated.h"
 
+class USphereComponent;
 enum class EGameTeam : uint8;
 class UPawnSensingComponent;
 class UFloatingPawnMovement;
 class AMinionBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackTargetSet, AActor*, AttackTarget);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGroupDeath);
 
 UCLASS()
 class MOBADEGREE_API AMinionsGroupPawn : public APawn
@@ -24,9 +26,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void SetAttackTargetBlackboard(AActor* Target, FName Key);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void TestAIBlackboard(AActor* Target);
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnAttackTargetSet OnAttackTargetSet;
@@ -45,6 +44,9 @@ public:
 	TObjectPtr<UPawnSensingComponent> PawnSensingComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<USphereComponent> DetectionSphere;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TArray<USceneComponent*> SpawnPoints;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
@@ -61,6 +63,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnMinionDeath();
+
+	UPROPERTY(BlueprintAssignable, Category = "Combat")
+	FOnGroupDeath OnGroupDeath;
 
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn* Pawn);

@@ -5,6 +5,7 @@
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Component/TeamComponent.h"
+#include "Components/SphereComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Minions/MinionBase.h"
@@ -23,9 +24,13 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	PawnSensingComponent->SightRadius = 1000.f;
 	PawnSensingComponent->SetPeripheralVisionAngle(40.f);
 
+	DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
+	DetectionSphere->SetupAttachment(GetRootComponent());
+	DetectionSphere->SetSphereRadius(400.f);
+
 #pragma region MinionsSpawnPoints
 	SpawnPointsMinion = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinion"));
-	SpawnPointsMinion->SetupAttachment(RootComponent);
+	SetRootComponent(SpawnPointsMinion);
 
 	SpawnPointMinionMelee = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionMeele"));
 	SpawnPointMinionMelee->SetupAttachment(SpawnPointsMinion);
