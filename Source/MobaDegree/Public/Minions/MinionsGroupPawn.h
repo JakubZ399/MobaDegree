@@ -43,8 +43,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<UPawnSensingComponent> PawnSensingComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
-	TObjectPtr<USphereComponent> DetectionSphere;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<USphereComponent> DetectionSphere;*/
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TArray<USceneComponent*> SpawnPoints;
@@ -58,14 +58,23 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	EGameTeam Team{EGameTeam::None};
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup|Debug")
+	bool bDebugRespawnMelee{true};
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup|Debug")
+	bool bDebugRespawnRanged{true};
+
 	UFUNCTION(BlueprintCallable)
 	void MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent);
 
 	UFUNCTION(BlueprintCallable)
-	void OnMinionDeath();
+	void OnMinionDeath(AActor* DeadMinion);
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnGroupDeath OnGroupDeath;
+
+	UFUNCTION()
+	void OnGroupDeathCallback();
 
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn* Pawn);
@@ -97,6 +106,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 
@@ -109,8 +119,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
 	FName EnemyLaneTargetKey{"EnemyLaneTarget"};
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
+	bool FightWithOtherGroup{false};
+
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE void SetEnemyLaneTarget(AActor* Target) { EnemyLaneTarget = Target; }
+
+	UFUNCTION(BlueprintCallable)
+	void CallOnAttackTargetSet();
 
 };

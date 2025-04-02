@@ -17,7 +17,7 @@ class UMobaAttributeSet;
 class UTeamComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMinionDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMinionDeath, AMinionBase*, DeadMinion);
 
 
 UCLASS()

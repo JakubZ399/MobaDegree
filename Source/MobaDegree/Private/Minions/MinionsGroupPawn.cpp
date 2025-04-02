@@ -15,6 +15,9 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
+	SpawnPointsMinion = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinion"));
+	SetRootComponent(SpawnPointsMinion);
+	
 	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
 	MovementComponent->MaxSpeed = 300.f;
 	
@@ -24,14 +27,12 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	PawnSensingComponent->SightRadius = 1000.f;
 	PawnSensingComponent->SetPeripheralVisionAngle(40.f);
 
-	DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
-	DetectionSphere->SetupAttachment(GetRootComponent());
+	/*DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
+	DetectionSphere->SetupAttachment(RootComponent);
 	DetectionSphere->SetSphereRadius(400.f);
+	DetectionSphere->bHiddenInGame = false;*/
 
 #pragma region MinionsSpawnPoints
-	SpawnPointsMinion = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinion"));
-	SetRootComponent(SpawnPointsMinion);
-
 	SpawnPointMinionMelee = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionMeele"));
 	SpawnPointMinionMelee->SetupAttachment(SpawnPointsMinion);
 
@@ -72,6 +73,13 @@ void AMinionsGroupPawn::BeginPlay()
 	AttackTarget = nullptr;
 }
 
+void AMinionsGroupPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+
+	OnGroupDeath.Broadcast();
+}
+
 void AMinionsGroupPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -103,8 +111,15 @@ void AMinionsGroupPawn::Initialize()
 	SetActorRotation(NewRotation);
 
 	SetAttackTargetBlackboard(EnemyLaneTarget, EnemyLaneTargetKey);
-	MinionsSpawn(MeleeMinionClass, SpawnPointMinionMelee);
-	MinionsSpawn(RangedMinionClass, SpawnPointMinionRanged);
+	if (bDebugRespawnMelee)
+	{
+		MinionsSpawn(MeleeMinionClass, SpawnPointMinionMelee);
+	}
+	if (bDebugRespawnRanged)
+	{
+		MinionsSpawn(RangedMinionClass, SpawnPointMinionRanged);
+	}
+
 }
 
 void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent)
@@ -125,37 +140,63 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 				SpawnedMinion->HomeBase = SpawnPoint;
 				SpawnedMinion->ChangeMesh();
 				SpawnedMinions.AddUnique(SpawnedMinion);
-				SpawnedMinion->OnMinionDeath.AddDynamic(this, &AMinionsGroupPawn::OnMinionDeath);
+				//SpawnedMinion->OnMinionDeath.AddDynamic(this, &AMinionsGroupPawn::OnMinionDeath);
+				SpawnedMinion->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnMinionDeath);
 				SpawnedMinion->BindOnAttackTarget(this);
 			}
 		}
 	}
 }
 
-void AMinionsGroupPawn::OnMinionDeath()
+void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 {
 	AttackTarget = nullptr;
-	/*SpawnPoints.Pop();
-	if (SpawnPoints.Num() == 0)
+	AMinionBase* DeadMinionRef = Cast<AMinionBase>(DeadMinion);
+	if (DeadMinionRef)
 	{
-		Destroy();
-	}*/
+		SpawnedMinions.RemoveSwap(DeadMinionRef);
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString::Printf(TEXT("MinionsGroupPawn: OnMinionDeath, SpawnedMinions number: %d"), SpawnedMinions.Num()));
+	}
 }
 
 void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 {
-	if (AttackTarget) return;
-
-	if (IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn))
+	AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn);
+	if (OtherGroup && OtherGroup->Team != Team && !FightWithOtherGroup)
 	{
-		EGameTeam PawnTeam = TeamInterface->GetTeamInterface_Implementation();
+		FightWithOtherGroup = true;
+		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
 
-		if (PawnTeam != Team && PawnTeam != EGameTeam::None)
+		if (AAIController* AIController = GetController<AAIController>())
 		{
-			AttackTarget = Pawn;
-			SetAttackTargetBlackboard(Pawn, "AttackTarget");
-			OnAttackTargetSet.Broadcast(AttackTarget);
+			if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+			{
+				BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+			}
+		}
+
+		OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
+	}
+}
+
+void AMinionsGroupPawn::OnGroupDeathCallback()
+{
+	FightWithOtherGroup = false;
+
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+		{
+			BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
 		}
 	}
+
+	//TODO::Wysłać to do minionów FightWithOtherGroup na false
+	OnAttackTargetSet.Broadcast(nullptr);
+}
+
+void AMinionsGroupPawn::CallOnAttackTargetSet()
+{
+	OnAttackTargetSet.Broadcast(AttackTarget);
 }
 

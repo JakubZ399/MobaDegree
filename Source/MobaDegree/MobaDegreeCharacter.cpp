@@ -15,6 +15,8 @@
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
+
+	//TODO::Setup Collision channel ToDetect
 	
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);

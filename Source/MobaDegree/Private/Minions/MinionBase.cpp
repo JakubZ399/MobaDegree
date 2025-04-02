@@ -61,7 +61,7 @@ void AMinionBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
 
-	OnMinionDeath.Broadcast();
+	//OnMinionDeath.Broadcast(this);
 }
 
 
@@ -142,13 +142,21 @@ void AMinionBase::BindOnAttackTarget(class AMinionsGroupPawn* MinionsGroup)
 
 void AMinionBase::SetupAttackTarget(AActor* AttackTargetRef)
 {
-	//if (!AttackTarget) return;
+	if (AttackTargetRef == nullptr)
+	{
+		if (GetBlackboardComponent())
+		{
+			GetBlackboardComponent()->SetValueAsObject(AttackTargetKey, nullptr);
+			GetBlackboardComponent()->SetValueAsBool("FightWithOtherGroup", false);
+			return;
+		}
+	}
 	
 	AttackTarget = AttackTargetRef;
-
 	if (GetBlackboardComponent())
 	{
 		GetBlackboardComponent()->SetValueAsObject(AttackTargetKey, AttackTarget);
+		GetBlackboardComponent()->SetValueAsBool("FightWithOtherGroup", true);
 	}
 }
 
@@ -156,10 +164,10 @@ void AMinionBase::Attack()
 {
 	AbilitySystemComponent->TryActivateAbilityByClass(BaseAttack);
 
-	if (GetWorld() && AttackTarget)
+	/*if (GetWorld() && AttackTarget)
 	{
-		DrawDebugSphere(GetWorld(), AttackTarget->GetActorLocation(), 50.f, 12, FColor::Blue, true, 1.f);
-	}
+		DrawDebugSphere(GetWorld(), AttackTarget->GetActorLocation(), 50.f, 12, FColor::Blue, false, 1.f);
+	}*/
 }
 
 void AMinionBase::SetGroupPosition(FVector GroupPositionRef)
@@ -222,8 +230,6 @@ float AMinionBase::GetAttackRange()
 {
 	bool Found = false;
 	float Range = AbilitySystemComponent->GetGameplayAttributeValue(UMobaAttributeSet::GetAttackRangeAttribute(), Found);
-
-	GEngine->AddOnScreenDebugMessage(-1, 4.f, FColor::Red, FString::Printf(TEXT("Range: %f"), Range));
 
 	return Range;
 }

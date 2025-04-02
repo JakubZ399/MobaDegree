@@ -114,19 +114,16 @@ void AMobaTower::InitializeAttribute()
 void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	/*if (Cast<APawn>(OtherActor))
-	{
-		PawnsArray.AddUnique(OtherActor);
-	}*/
+
 	if (!AttackComponent->GetAttackTarget() && Cast<APawn>(OtherActor) && !bIsAttacking)
 	{
-		/*IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(OtherActor);
-		if (TeamInterface && TeamInterface->GetTeamInterface_Implementation() != TeamComponent->GetTeam())
-		{*/
-			AttackComponent->SetAttackTarget(OtherActor);
-			bIsAttacking = true;
-			SpawnTowerShot();
-		/*}*/
+		if (IMobaTeamInterface* MobaTeamInterface = Cast<IMobaTeamInterface>(OtherActor))
+			if (MobaTeamInterface && MobaTeamInterface->Execute_GetTeamInterface(OtherActor) != TeamComponent->GetTeam())
+			{
+				AttackComponent->SetAttackTarget(OtherActor);
+				bIsAttacking = true;
+				SpawnTowerShot();
+			}
 	}
 }
 
