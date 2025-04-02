@@ -10,6 +10,7 @@
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Minions/MinionBase.h"
+#include "MobaDegree/MobaDegreeCharacter.h"
 #include "Perception/PawnSensingComponent.h"
 
 AMinionsGroupPawn::AMinionsGroupPawn()
@@ -158,22 +159,22 @@ void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 {
 	IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn);
-	if (TeamInterface && TeamInterface->Execute_GetTeamInterface(Pawn) != Team && !FightWithOtherGroup)
+	if (TeamInterface && TeamInterface->Execute_GetTeamInterface(Pawn) != Team && !bInCombat)
 	{
 		//TODO::Agressive Enemy && Enemy
 		
 		// Tower
 		if (AMobaTower* Tower = Cast<AMobaTower>(Pawn))
 		{
-			if (Tower->TeamComponent->GetTeam() == Team) { return; }
-			FightWithOtherGroup = true;
+			//if (Tower->TeamComponent->GetTeam() == Team) { return; }
+			bInCombat = true;
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Purple, FString::Printf(TEXT("OnSeePawnTower: %s"),*Pawn->GetName()));
 
 			if (AAIController* AIController = GetController<AAIController>())
 			{
 				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
 				{
-					BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
 				}
 			}
 
@@ -185,31 +186,52 @@ void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 		// Minions - other group
 		if (AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn))
 		{
-			FightWithOtherGroup = true;
+			bInCombat = true;
 			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
 
 			if (AAIController* AIController = GetController<AAIController>())
 			{
 				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
 				{
-					BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
 				}
 			}
 
 			OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
+			
+			return;
 		}
+
+		//Enemy character
+		/*if (AMobaDegreeCharacter* EnemyCharacter = Cast<AMobaDegreeCharacter>(Pawn))
+		{
+			bInCombat = true;
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
+
+			if (AAIController* AIController = GetController<AAIController>())
+			{
+				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+				{
+					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
+				}
+			}
+
+			//Callback to character
+			
+			return;
+		}*/
 	}
 }
 
 void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
 {
-	FightWithOtherGroup = false;
+	bInCombat = false;
 
 	if (AAIController* AIController = GetController<AAIController>())
 	{
 		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
 		{
-			BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
 		}
 	}
 	
@@ -218,15 +240,16 @@ void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
 
 void AMinionsGroupPawn::OnGroupDeathCallback()
 {
-	FightWithOtherGroup = false;
+	bInCombat = false;
 
 	if (AAIController* AIController = GetController<AAIController>())
 	{
 		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
 		{
-			BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
 		}
 	}
+	
 	
 	OnAttackTargetSet.Broadcast(nullptr);
 }

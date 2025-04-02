@@ -169,7 +169,7 @@ void AMinionBase::SetupAttackTarget(AActor* AttackTargetRef)
 		if (GetBlackboardComponent())
 		{
 			GetBlackboardComponent()->SetValueAsObject(AttackTargetKey, nullptr);
-			GetBlackboardComponent()->SetValueAsBool("FightWithOtherGroup", false);
+			GetBlackboardComponent()->SetValueAsBool(InCombatKey, false);
 			return;
 		}
 	}
@@ -178,18 +178,13 @@ void AMinionBase::SetupAttackTarget(AActor* AttackTargetRef)
 	if (GetBlackboardComponent())
 	{
 		GetBlackboardComponent()->SetValueAsObject(AttackTargetKey, AttackTarget);
-		GetBlackboardComponent()->SetValueAsBool("FightWithOtherGroup", true);
+		GetBlackboardComponent()->SetValueAsBool(InCombatKey, true);
 	}
 }
 
 void AMinionBase::Attack()
 {
 	AbilitySystemComponent->TryActivateAbilityByClass(BaseAttack);
-
-	/*if (GetWorld() && AttackTarget)
-	{
-		DrawDebugSphere(GetWorld(), AttackTarget->GetActorLocation(), 50.f, 12, FColor::Blue, false, 1.f);
-	}*/
 }
 
 void AMinionBase::SetGroupPosition(FVector GroupPositionRef)

@@ -112,6 +112,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
 	FName AttackTargetKey{"AttackTarget"};
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|AI", meta = (AllowPrivateAccess = "true"))
+	FName InCombatKey{"InCombat"};
+
 	bool DoOnce{false};
 
 public:

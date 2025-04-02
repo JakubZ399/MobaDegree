@@ -71,7 +71,7 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnGroupDeath OnGroupDeath;
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void OnGroupDeathCallback();
 
 	UFUNCTION()
@@ -120,8 +120,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
 	FName EnemyLaneTargetKey{"EnemyLaneTarget"};
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
+	FName InCombatKey{"InCombat"};
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
-	bool FightWithOtherGroup{false};
+	bool bInCombat{false};
 
 public:
 	UFUNCTION(BlueprintCallable)
