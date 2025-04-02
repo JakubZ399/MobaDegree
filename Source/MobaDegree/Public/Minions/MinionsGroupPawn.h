@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Interfaces/MobaTeamInterface.h"
 #include "Team/EGameTeam.h"
 #include "MinionsGroupPawn.generated.h"
 
@@ -17,7 +18,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackTargetSet, AActor*, AttackT
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGroupDeath);
 
 UCLASS()
-class MOBADEGREE_API AMinionsGroupPawn : public APawn
+class MOBADEGREE_API AMinionsGroupPawn : public APawn, public IMobaTeamInterface
 {
 	GENERATED_BODY()
 
@@ -76,6 +77,9 @@ public:
 	UFUNCTION()
 	void OnGroupDeathCallback();
 
+	UFUNCTION()
+	void OnEnemyDestroyed(AActor* DestroyedActor);
+
 	UFUNCTION(BlueprintCallable)
 	void OnSeePawn(APawn* Pawn);
 	
@@ -128,5 +132,7 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CallOnAttackTargetSet();
+
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
 };

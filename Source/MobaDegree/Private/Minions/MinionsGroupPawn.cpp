@@ -3,6 +3,7 @@
 #include "Minions/MinionsGroupPawn.h"
 
 #include "AIController.h"
+#include "Actor/MobaTower.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Component/TeamComponent.h"
 #include "Components/SphereComponent.h"
@@ -161,22 +162,63 @@ void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 
 void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 {
-	AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn);
-	if (OtherGroup && OtherGroup->Team != Team && !FightWithOtherGroup)
+	IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn);
+	if (TeamInterface && TeamInterface->Execute_GetTeamInterface(Pawn) != Team && !FightWithOtherGroup)
 	{
-		FightWithOtherGroup = true;
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
-
-		if (AAIController* AIController = GetController<AAIController>())
+		//TODO::Agressive Enemy && Enemy
+		
+		// Tower
+		if (AMobaTower* Tower = Cast<AMobaTower>(Pawn))
 		{
-			if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+			if (Tower->TeamComponent->GetTeam() == Team) { return; }
+			FightWithOtherGroup = true;
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
+
+			if (AAIController* AIController = GetController<AAIController>())
 			{
-				BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+				{
+					BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+				}
 			}
+
+			Tower->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+
+			return;
 		}
 
-		OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
+		// Minions - other group
+		if (AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn))
+		{
+			FightWithOtherGroup = true;
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
+
+			if (AAIController* AIController = GetController<AAIController>())
+			{
+				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+				{
+					BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+				}
+			}
+
+			OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
+		}
 	}
+}
+
+void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
+{
+	FightWithOtherGroup = false;
+
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+		{
+			BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
+		}
+	}
+	
+	OnAttackTargetSet.Broadcast(nullptr);
 }
 
 void AMinionsGroupPawn::OnGroupDeathCallback()
@@ -190,13 +232,17 @@ void AMinionsGroupPawn::OnGroupDeathCallback()
 			BlackboardComponent->SetValueAsBool("FightWithOtherGroup", FightWithOtherGroup);
 		}
 	}
-
-	//TODO::Wysłać to do minionów FightWithOtherGroup na false
+	
 	OnAttackTargetSet.Broadcast(nullptr);
 }
 
 void AMinionsGroupPawn::CallOnAttackTargetSet()
 {
 	OnAttackTargetSet.Broadcast(AttackTarget);
+}
+
+EGameTeam AMinionsGroupPawn::GetTeamInterface_Implementation() const
+{
+	return Team;
 }
 
