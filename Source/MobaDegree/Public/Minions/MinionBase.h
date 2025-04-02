@@ -41,8 +41,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
-	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
+
+	UFUNCTION()
+	void OnRep_TeamComponent();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
@@ -96,9 +99,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CallOnAttackEndInterface_Implementation() override;
-
-
-	
 
 protected:
 	virtual void BeginPlay() override;

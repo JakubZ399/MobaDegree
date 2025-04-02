@@ -17,6 +17,7 @@
 AMobaTower::AMobaTower()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	CapsuleComponent = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Capsule"));
 	SetRootComponent(CapsuleComponent);
@@ -97,7 +98,10 @@ void AMobaTower::BeginPlay()
 	}
 	if (TowerAttackClass)
 	{
-		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
+		if (HasAuthority())
+		{
+			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
+		}
 	}
 }
 

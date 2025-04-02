@@ -17,6 +17,7 @@ class MOBADEGREE_API ATowerShot : public AActor
 public:	
 	ATowerShot();
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
@@ -28,14 +29,16 @@ protected:
 	virtual void BeginPlay() override;
 private:
 
-	void UpdateAlpha();
+	UPROPERTY(Replicated)
 	float AlphaToInterpolation{0.f};
+	
+	void UpdateAlpha();
 	FTimerHandle LerpTimer;
 
 	UFUNCTION()
 	void SphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<AActor> AttackTargetActor;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

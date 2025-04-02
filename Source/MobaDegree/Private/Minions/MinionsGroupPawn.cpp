@@ -152,7 +152,6 @@ void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 	if (DeadMinionRef)
 	{
 		SpawnedMinions.RemoveSwap(DeadMinionRef);
-		GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Red, FString::Printf(TEXT("MinionsGroupPawn: OnMinionDeath, SpawnedMinions number: %d"), SpawnedMinions.Num()));
 	}
 }
 
@@ -168,7 +167,7 @@ void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 		{
 			if (Tower->TeamComponent->GetTeam() == Team) { return; }
 			FightWithOtherGroup = true;
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
+			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Purple, FString::Printf(TEXT("OnSeePawnTower: %s"),*Pawn->GetName()));
 
 			if (AAIController* AIController = GetController<AAIController>())
 			{

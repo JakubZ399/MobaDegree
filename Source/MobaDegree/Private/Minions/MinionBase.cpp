@@ -55,8 +55,11 @@ void AMinionBase::BeginPlay()
 	{
 		GetCharacterMovement()->MaxWalkSpeed = MovementSpeedValue;
 	}
-	
-	AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
+
+	if (HasAuthority() && BaseAttack)
+	{
+		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
+	}
 }
 
 void AMinionBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -101,9 +104,14 @@ void AMinionBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& Ou
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME(AMinionBase, TeamComponent)
+	DOREPLIFETIME_CONDITION_NOTIFY(AMinionBase, TeamComponent, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME(AMinionBase, BlueMinionMesh);
 	DOREPLIFETIME(AMinionBase, RedMinionMesh);
+}
+
+void AMinionBase::OnRep_TeamComponent()
+{
+	ChangeMesh();
 }
 
 UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
