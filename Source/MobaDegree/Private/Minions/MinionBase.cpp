@@ -10,10 +10,12 @@
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Kismet/GameplayStatics.h"
 #include "Minions/MinionsGroupPawn.h"
+#include "Net/UnrealNetwork.h"
 
 AMinionBase::AMinionBase()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 	
 	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -95,6 +97,15 @@ void AMinionBase::Tick(float DeltaTime)
 	}
 }
 
+void AMinionBase::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AMinionBase, TeamComponent)
+	DOREPLIFETIME(AMinionBase, BlueMinionMesh);
+	DOREPLIFETIME(AMinionBase, RedMinionMesh);
+}
+
 UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
@@ -108,6 +119,9 @@ EGameTeam AMinionBase::GetTeamInterface_Implementation() const
 void AMinionBase::ChangeMesh_Implementation()
 {
 	EGameTeam MinionTeam = TeamComponent ? TeamComponent->GetTeam() : EGameTeam::None;
+
+	UE_LOG(LogTemp, Warning, TEXT("ChangeMesh called. Team: %d, HasAuthority: %d"), 
+	(int32)MinionTeam, HasAuthority() ? 1 : 0);
 	
 	if (!GetMesh()) return;
 	

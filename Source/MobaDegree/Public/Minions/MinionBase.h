@@ -29,7 +29,7 @@ public:
 	AMinionBase();
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual void Tick(float DeltaTime) override;
-
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
@@ -41,16 +41,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<USkeletalMesh> BlueMinionMesh;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup")
+	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<USkeletalMesh> RedMinionMesh;
 
 	UFUNCTION(NetMulticast, Reliable)

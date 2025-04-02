@@ -22,8 +22,8 @@ private:
 	EGameTeam Team{ EGameTeam::None };
 
 public:
-	UFUNCTION(BlueprintCallable, Category = "Team")
-	FORCEINLINE	void SetTeam(EGameTeam TeamToChose) { Team = TeamToChose; }
+	UFUNCTION(Server, Reliable, BlueprintCallable, Category = "Team")
+	void SetTeam(EGameTeam TeamToChose);
 
 	UFUNCTION(BlueprintCallable, Category = "Team")
 	FORCEINLINE	EGameTeam GetTeam() { return Team; }

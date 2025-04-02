@@ -8,10 +8,16 @@
 UTeamComponent::UTeamComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicated(true);
 }
 
 void UTeamComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UTeamComponent, Team);
+}
+
+void UTeamComponent::SetTeam_Implementation(EGameTeam TeamToChose)
+{
+	Team = TeamToChose;
 }
