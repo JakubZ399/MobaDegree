@@ -105,7 +105,7 @@ EGameTeam AMinionBase::GetTeamInterface_Implementation() const
 	return TeamComponent->GetTeam();
 }
 
-void AMinionBase::ChangeMesh()
+void AMinionBase::ChangeMesh_Implementation()
 {
 	EGameTeam MinionTeam = TeamComponent ? TeamComponent->GetTeam() : EGameTeam::None;
 	

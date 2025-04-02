@@ -3,18 +3,15 @@
 
 #include "Component/TeamComponent.h"
 
+#include "Net/UnrealNetwork.h"
+
 UTeamComponent::UTeamComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-void UTeamComponent::BeginPlay()
+void UTeamComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::BeginPlay();
-
-}
-
-void UTeamComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
-{
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(UTeamComponent, Team);
 }

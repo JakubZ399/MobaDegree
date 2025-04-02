@@ -44,9 +44,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<UPawnSensingComponent> PawnSensingComponent;
 
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
-	TObjectPtr<USphereComponent> DetectionSphere;*/
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TArray<USceneComponent*> SpawnPoints;
 

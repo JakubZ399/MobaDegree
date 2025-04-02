@@ -15,13 +15,10 @@ class MOBADEGREE_API UTeamComponent : public UActorComponent
 
 public:	
 	UTeamComponent();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-
-protected:
-	virtual void BeginPlay() override;
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 private:
-	UPROPERTY(EditInstanceOnly)
+	UPROPERTY(Replicated, EditInstanceOnly)
 	EGameTeam Team{ EGameTeam::None };
 
 public:

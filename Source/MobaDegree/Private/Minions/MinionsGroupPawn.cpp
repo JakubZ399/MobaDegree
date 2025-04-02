@@ -23,15 +23,8 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	MovementComponent->MaxSpeed = 300.f;
 	
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComponent"));
-	//PawnSensingComponent->HearingThreshold = 0.f;
-	//PawnSensingComponent->LOSHearingThreshold = 0.f;
 	PawnSensingComponent->SightRadius = 1000.f;
-	PawnSensingComponent->SetPeripheralVisionAngle(40.f);
-
-	/*DetectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("DetectionSphere"));
-	DetectionSphere->SetupAttachment(RootComponent);
-	DetectionSphere->SetSphereRadius(400.f);
-	DetectionSphere->bHiddenInGame = false;*/
+	PawnSensingComponent->SetPeripheralVisionAngle(60.f);
 
 #pragma region MinionsSpawnPoints
 	SpawnPointMinionMelee = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionMeele"));
@@ -125,7 +118,8 @@ void AMinionsGroupPawn::Initialize()
 
 void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent)
 {
-	if (!MinionClass || !SpawnPointSceneComponent) return;
+	if (!MinionClass || !SpawnPointSceneComponent || !HasAuthority()) return;
+	
 	SpawnPointSceneComponent->GetChildrenComponents(false, SpawnPoints);
 
 	if (SpawnPoints.Num() > 0)
@@ -133,6 +127,8 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 		for (USceneComponent* SpawnPoint : SpawnPoints)
 		{
 			FActorSpawnParameters SpawnParameters;
+			SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			
 			AMinionBase* SpawnedMinion = GetWorld()->SpawnActor<AMinionBase>(MinionClass, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation(), SpawnParameters);
 
 			if (SpawnedMinion)
