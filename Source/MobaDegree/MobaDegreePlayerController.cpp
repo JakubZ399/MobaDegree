@@ -51,9 +51,6 @@ void AMobaDegreePlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::OnSetDestinationTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
-
-		// Setup touch input events
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::OnInputStarted);
 	}
 	else
 	{
@@ -64,20 +61,6 @@ void AMobaDegreePlayerController::SetupInputComponent()
 void AMobaDegreePlayerController::OnInputStarted()
 {
 	StopMovement();
-}
-
-void AMobaDegreePlayerController::MoveToPoint()
-{
-	FHitResult Hit;
-	
-	FVector Start;
-	FVector WorldDirection;
-	DeprojectMousePositionToWorld(Start, WorldDirection);
-	FVector End = (WorldDirection * 5000) + WorldDirection;
-	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility))
-	{
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, Hit.Location);
-	}
 }
 
 void AMobaDegreePlayerController::OnSetDestinationTriggered()
@@ -185,5 +168,36 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
 	}
 
 	FollowTime = 0.f;
+}
+
+
+
+void AMobaDegreePlayerController::MoveToPoint()
+{
+	FHitResult Hit;
+	
+	FVector Start;
+	FVector WorldDirection;
+	DeprojectMousePositionToWorld(Start, WorldDirection);
+	FVector End = (WorldDirection * 5000) + WorldDirection;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility))
+	{
+		Server_MoveToLocation(Hit.Location);
+	}
+}
+
+void AMobaDegreePlayerController::Server_MoveToLocation_Implementation(const FVector& Location)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Server_MoveToLocation executed: %s"), *Location.ToString());
+	
+	APawn* ControlledPawn = GetPawn();
+	if (!ControlledPawn) return;
+	
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, Location);
+}
+
+void AMobaDegreePlayerController::Server_OnSetDestinationTriggered_Implementation(const FVector& HitLocation,
+	AActor* HitActor)
+{
 }
 

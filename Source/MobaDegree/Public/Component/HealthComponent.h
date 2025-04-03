@@ -4,28 +4,50 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "AbilitySystemComponent.h"
+#include "GameplayEffectTypes.h"
+#include "GameplayEffect.h"
+#include "Components/WidgetComponent.h"
 #include "HealthComponent.generated.h"
 
-
-class UHealthBarWidget;
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, NewHealth, float, MaxHealth);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MOBADEGREE_API UHealthComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:    
 	UHealthComponent();
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+    
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+    
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FOnHealthChanged OnHealthChanged;
 
 protected:
 	virtual void BeginPlay() override;
+    
+	UFUNCTION()
+	void InitializeWithDelay();
+    
+	// Callback na zmiany zdrowia z GAS
+	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
+	void OnMaxHealthAttributeChanged(const FOnAttributeChangeData& Data);
+    
+	// Aktualizuje HealthBar Widget
+	void UpdateHealthBar();
 
 private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UHealthBarWidget> HealthBarWidget;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<UUserWidget> HealthBarWidgetClass;
-	
+	UPROPERTY()
+	UAbilitySystemComponent* OwnerASC;
+    
+	UPROPERTY()
+	UWidgetComponent* OwnerHealthBar;
+    
+	UPROPERTY(Replicated)
+	float CurrentHealth;
+    
+	UPROPERTY(Replicated)
+	float MaxHealth;
 };

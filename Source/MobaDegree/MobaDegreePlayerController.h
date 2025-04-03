@@ -71,7 +71,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
 
+	UFUNCTION(Server, Reliable)
+	void Server_MoveToLocation(const FVector& Location);
 
+	UFUNCTION(Server, Reliable)
+	void Server_OnSetDestinationTriggered(const FVector& HitLocation, AActor* HitActor);
 };
 
 
