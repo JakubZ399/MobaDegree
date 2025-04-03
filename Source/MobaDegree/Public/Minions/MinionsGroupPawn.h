@@ -56,17 +56,27 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	EGameTeam Team{EGameTeam::None};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup|Debug")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
 	bool bDebugRespawnMelee{true};
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Setup|Debug")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
 	bool bDebugRespawnRanged{true};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
+	bool bDetectTower{true};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
+	bool bDetectMinion{true};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
+	bool bDetectPlayers{true};
 
 	UFUNCTION(BlueprintCallable)
 	void MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent);
 
 	UFUNCTION(BlueprintCallable)
 	void OnMinionDeath(AActor* DeadMinion);
+	bool SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn);
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnGroupDeath OnGroupDeath;

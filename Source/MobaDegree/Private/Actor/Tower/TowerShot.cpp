@@ -62,8 +62,14 @@ void ATowerShot::AttackTarget(AActor* Target)
 	{
 		AttackTargetActor = Target;
 		GetWorld()->GetTimerManager().SetTimer(LerpTimer, this, &ATowerShot::UpdateAlpha, 0.005f, true);
-		
+
+		Target->OnDestroyed.AddDynamic(this, &ATowerShot::OnTargetDestroyCallback);
 	}
+}
+
+void ATowerShot::OnTargetDestroyCallback(AActor* DestroyedActor)
+{
+	SetLifeSpan(0.25f);
 }
 
 void ATowerShot::UpdateAlpha()

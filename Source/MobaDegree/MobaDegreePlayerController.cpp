@@ -54,9 +54,6 @@ void AMobaDegreePlayerController::SetupInputComponent()
 
 		// Setup touch input events
 		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::OnTouchTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &AMobaDegreePlayerController::OnTouchReleased);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &AMobaDegreePlayerController::OnTouchReleased);
 	}
 	else
 	{
@@ -69,6 +66,20 @@ void AMobaDegreePlayerController::OnInputStarted()
 	StopMovement();
 }
 
+void AMobaDegreePlayerController::MoveToPoint()
+{
+	FHitResult Hit;
+	
+	FVector Start;
+	FVector WorldDirection;
+	DeprojectMousePositionToWorld(Start, WorldDirection);
+	FVector End = (WorldDirection * 5000) + WorldDirection;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility))
+	{
+		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, Hit.Location);
+	}
+}
+
 void AMobaDegreePlayerController::OnSetDestinationTriggered()
 {
 	FollowTime += GetWorld()->GetDeltaSeconds();
@@ -76,14 +87,9 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 	FHitResult Hit;
 	bool bHitSuccessful = false;
 	
-	if (bIsTouch)
-	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
+
+	bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+
 
 	FHitResult HitPawnResult;
 	bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
@@ -143,12 +149,14 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 	}
 	
 	// Move towards mouse pointer or touch
-	APawn* ControlledPawn = GetPawn();
+
+	MoveToPoint();
+	/*APawn* ControlledPawn = GetPawn();
 	if (ControlledPawn != nullptr)
 	{
 		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
-	}
+	}*/
 }
 
 void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
@@ -179,15 +187,3 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
 	FollowTime = 0.f;
 }
 
-// Triggered every frame when the input is held down
-void AMobaDegreePlayerController::OnTouchTriggered()
-{
-	bIsTouch = true;
-	OnSetDestinationTriggered();
-}
-
-void AMobaDegreePlayerController::OnTouchReleased()
-{
-	bIsTouch = false;
-	OnSetDestinationReleased();
-}

@@ -4,6 +4,7 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,11 +24,15 @@ AMinionBase::AMinionBase()
 
 	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("MobaAttributeSet"));
 
-	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
 	TeamComponent->SetIsReplicated(true);
 
-	HealthBarWidgetComponent = CreateDefaultSubobject<UWidgetComponent>("HealthBarWidgetComponent");
-	HealthBarWidgetComponent->SetIsReplicated(true);
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
+
+	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Health Bar Widget"));
+	HealthBarWidget->SetIsReplicated(true);
+	HealthBarWidget->SetupAttachment(RootComponent);
+	//HealthBarWidget->Setwi
 
 }
 

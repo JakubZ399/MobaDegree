@@ -57,17 +57,15 @@ protected:
 
 	/** Input handlers for SetDestination action. */
 	void OnInputStarted();
+	void MoveToPoint();
 	void OnSetDestinationTriggered();
 	void OnSetDestinationReleased();
-	void OnTouchTriggered();
-	void OnTouchReleased();
 
 	bool bPawnClicked;
 
 private:
 	FVector CachedDestination;
-
-	bool bIsTouch; // Is it a touch device
+	
 	float FollowTime; // For how long it has been pressed
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))

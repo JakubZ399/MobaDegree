@@ -11,6 +11,8 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MinionBase.generated.h"
 
+class UHealthBarWidget;
+class UHealthComponent;
 class UBlackboardComponent;
 class UWidgetComponent;
 class UMobaAttributeSet;
@@ -44,11 +46,14 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TObjectPtr<UHealthComponent> HealthComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TObjectPtr<UWidgetComponent> HealthBarWidget;
+
 	UFUNCTION()
 	void OnRep_TeamComponent();
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UWidgetComponent> HealthBarWidgetComponent;
 
 	UPROPERTY(Replicated, EditAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<USkeletalMesh> BlueMinionMesh;

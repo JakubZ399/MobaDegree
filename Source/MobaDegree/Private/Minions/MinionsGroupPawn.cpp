@@ -156,27 +156,32 @@ void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 	}
 }
 
+bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn)
+{
+	if (!bEnemyBoolDetection) {return true;}
+	bInCombat = true;
+
+	if (AAIController* AIController = GetController<AAIController>())
+	{
+		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
+		{
+			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
+		}
+	}
+	return false;
+}
+
 void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 {
 	IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn);
 	if (TeamInterface && TeamInterface->Execute_GetTeamInterface(Pawn) != Team && !bInCombat)
 	{
-		//TODO::Agressive Enemy && Enemy
+		//TODO::Agressive Enemy :: Prio.
 		
 		// Tower
 		if (AMobaTower* Tower = Cast<AMobaTower>(Pawn))
 		{
-			//if (Tower->TeamComponent->GetTeam() == Team) { return; }
-			bInCombat = true;
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Purple, FString::Printf(TEXT("OnSeePawnTower: %s"),*Pawn->GetName()));
-
-			if (AAIController* AIController = GetController<AAIController>())
-			{
-				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
-				{
-					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
-				}
-			}
+			SetupDetectedEnemy(bDetectTower, Pawn);
 
 			Tower->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
 
@@ -186,16 +191,7 @@ void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 		// Minions - other group
 		if (AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn))
 		{
-			bInCombat = true;
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
-
-			if (AAIController* AIController = GetController<AAIController>())
-			{
-				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
-				{
-					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
-				}
-			}
+			SetupDetectedEnemy(bDetectMinion, Pawn);
 
 			OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
 			
@@ -203,23 +199,14 @@ void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
 		}
 
 		//Enemy character
-		/*if (AMobaDegreeCharacter* EnemyCharacter = Cast<AMobaDegreeCharacter>(Pawn))
+		if (AMobaDegreeCharacter* EnemyCharacter = Cast<AMobaDegreeCharacter>(Pawn))
 		{
-			bInCombat = true;
-			GEngine->AddOnScreenDebugMessage(-1, 15.f, FColor::Green, FString::Printf(TEXT("OnSeePawn: %s"),*Pawn->GetName()));
+			SetupDetectedEnemy(bDetectPlayers, Pawn);
 
-			if (AAIController* AIController = GetController<AAIController>())
-			{
-				if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
-				{
-					BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
-				}
-			}
-
-			//Callback to character
+			//TODO:: Callback to character
 			
 			return;
-		}*/
+		}
 	}
 }
 
