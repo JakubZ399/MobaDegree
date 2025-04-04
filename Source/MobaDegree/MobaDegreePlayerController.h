@@ -3,79 +3,79 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "MobaDegreeCharacter.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "MobaDegreePlayerController.generated.h"
 
-/** Forward declaration to improve compiling times */
 class UNiagaraSystem;
 class UInputMappingContext;
 class UInputAction;
+class AMobaDegreeCharacter;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS()
 class AMobaDegreePlayerController : public APlayerController
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AMobaDegreePlayerController();
+    AMobaDegreePlayerController();
 
-	/** Time Threshold to know if it was a short press */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	float ShortPressThreshold;
+    /** Time Threshold to know if it was a short press */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+    float ShortPressThreshold = 0.2f;
 
-	/** FX Class that we will spawn when clicking */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UNiagaraSystem* FXCursor;
+    /** FX Class that we will spawn when clicking */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+    UNiagaraSystem* FXCursor;
 
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
-	
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* SetDestinationClickAction;
+    /** MappingContext */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+    UInputMappingContext* DefaultMappingContext;
+    
+    /** Destination Click Input Action */
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+    UInputAction* SetDestinationClickAction;
 
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	UInputAction* SetDestinationTouchAction;
-
-	UFUNCTION(BlueprintCallable)
-	void ChangeOutline(AActor* OutlineActor, bool ShowOutline);
+    UFUNCTION(BlueprintCallable)
+    void ChangeOutline(AActor* OutlineActor, bool ShowOutline);
 
 protected:
-	/** True if the controlled character should navigate to the mouse cursor. */
-	uint32 bMoveToMouseCursor : 1;
+    virtual void SetupInputComponent() override;
+    
+    // To add mapping context
+    virtual void BeginPlay() override;
 
-	virtual void SetupInputComponent() override;
-	
-	// To add mapping context
-	virtual void BeginPlay();
+    /** Input handlers for SetDestination action. */
+    void OnInputStarted();
+    void OnSetDestinationTriggered();
+    void OnSetDestinationReleased();
 
-	/** Input handlers for SetDestination action. */
-	void OnInputStarted();
-	void MoveToPoint();
-	void OnSetDestinationTriggered();
-	void OnSetDestinationReleased();
+    // Spawn cursor FX locally (client only)
+    void SpawnCursorFX(const FVector& Location);
+    
+    // Handle movement to a point
+    void ProcessMovementToLocation(const FVector& Location);
+    
+    // Handle target selection
+    void ProcessTargetSelection(AActor* TargetActor);
+    
+    // Replication functions
+    UFUNCTION(Server, Reliable)
+    void Server_MoveToLocation(const FVector& Location);
+    
+    UFUNCTION(Server, Reliable)
+    void Server_SelectTarget(AActor* Target);
 
-	bool bPawnClicked;
+    UFUNCTION(Server, Reliable)
+    void Server_ClearTarget();
 
 private:
-	FVector CachedDestination;
-	
-	float FollowTime; // For how long it has been pressed
+    FVector CachedDestination;
+    bool bPawnClicked = false;
+    float FollowTime = 0.0f; // For how long it has been pressed
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
-
-	UFUNCTION(Server, Reliable)
-	void Server_MoveToLocation(const FVector& Location);
-
-	UFUNCTION(Server, Reliable)
-	void Server_OnSetDestinationTriggered(const FVector& HitLocation, AActor* HitActor);
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
 };
-
-
