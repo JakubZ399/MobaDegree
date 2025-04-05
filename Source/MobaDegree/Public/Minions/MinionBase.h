@@ -34,27 +34,27 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS", Instanced)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS", Instanced)
 	TObjectPtr<UMobaAttributeSet> MobaAttributeSet;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
-	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite, Category = "Setup|A_GAS")
 	TObjectPtr<UTeamComponent> TeamComponent;
 
 
 	//Health
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TObjectPtr<UHealthComponent> HealthComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TObjectPtr<UWidgetComponent> HealthBarWidget;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TSubclassOf<UUserWidget> HealthBarWidgetClass;
 	//
 	

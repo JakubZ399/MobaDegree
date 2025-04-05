@@ -6,6 +6,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
@@ -24,7 +25,7 @@ AMinionBase::AMinionBase()
 
 	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("MobaAttributeSet"));
 
-	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
+	TeamComponent = CreateDefaultSubobject<UTeamComponent>(TEXT("MinionTeamComponent"));
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
 
@@ -33,6 +34,8 @@ AMinionBase::AMinionBase()
 	HealthBarWidget->SetupAttachment(RootComponent);
 	HealthBarWidget->SetDrawAtDesiredSize(true);
 	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
+	HealthBarWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	HealthBarWidget->SetDrawAtDesiredSize(true);
 }
 
 void AMinionBase::BeginPlay()
