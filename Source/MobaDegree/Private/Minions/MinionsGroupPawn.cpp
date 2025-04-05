@@ -114,7 +114,6 @@ void AMinionsGroupPawn::Initialize()
 	{
 		MinionsSpawn(RangedMinionClass, SpawnPointMinionRanged);
 	}
-
 }
 
 void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent)

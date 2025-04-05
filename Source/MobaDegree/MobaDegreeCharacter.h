@@ -37,8 +37,9 @@ public:
 
 	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
+	//temp solution
 	UFUNCTION()
-	void MoveToLocation();
+	void MoveToLocation(FVector Location);
 
 protected:
 	virtual void BeginPlay() override;

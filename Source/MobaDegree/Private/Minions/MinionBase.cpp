@@ -32,8 +32,8 @@ AMinionBase::AMinionBase()
 	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Health Bar Widget"));
 	HealthBarWidget->SetIsReplicated(true);
 	HealthBarWidget->SetupAttachment(RootComponent);
-	//HealthBarWidget->Setwi
-
+	HealthBarWidget->SetDrawAtDesiredSize(true);
+	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
 }
 
 void AMinionBase::BeginPlay()
@@ -64,6 +64,11 @@ void AMinionBase::BeginPlay()
 	if (HasAuthority() && BaseAttack)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
+	}
+
+	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
+	{
+		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
 	}
 }
 

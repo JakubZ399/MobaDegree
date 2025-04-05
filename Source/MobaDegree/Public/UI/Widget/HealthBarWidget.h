@@ -22,10 +22,13 @@ public:
 	virtual void SetBarValue_Implementation(float BarValue) override;
 
 private:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthProgressBar"), meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UProgressBar> HealthProgressBar;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthBarBox"), meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USizeBox> HealthBarBox;
+
+public:
+	UFUNCTION(BlueprintCallable)
+	FORCEINLINE UProgressBar* GetHealthProgressBar() { return HealthProgressBar.Get(); }
 };

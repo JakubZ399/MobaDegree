@@ -10,7 +10,7 @@
 #include "Components/WidgetComponent.h"
 #include "HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHealthChanged, float, NewHealth, float, MaxHealth);
+class UHealthBarWidget;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MOBADEGREE_API UHealthComponent : public UActorComponent
@@ -19,35 +19,21 @@ class MOBADEGREE_API UHealthComponent : public UActorComponent
 
 public:    
 	UHealthComponent();
-    
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-    
-	UPROPERTY(BlueprintAssignable, Category = "Health")
-	FOnHealthChanged OnHealthChanged;
+
+	/**
+	 * Use this in owner's BeginPlay() to setup HealthBarWidget
+	 * @param Widget - HealthBarWidget
+	 */
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void SetHealthBarWidgetFromOwner(UWidgetComponent* Widget);
 
 protected:
 	virtual void BeginPlay() override;
-    
-	UFUNCTION()
-	void InitializeWithDelay();
-    
-	// Callback na zmiany zdrowia z GAS
-	void OnHealthAttributeChanged(const FOnAttributeChangeData& Data);
-	void OnMaxHealthAttributeChanged(const FOnAttributeChangeData& Data);
-    
-	// Aktualizuje HealthBar Widget
-	void UpdateHealthBar();
 
 private:
 	UPROPERTY()
-	UAbilitySystemComponent* OwnerASC;
-    
+	TObjectPtr<UWidgetComponent> OwnerHealthBar;
+
 	UPROPERTY()
-	UWidgetComponent* OwnerHealthBar;
-    
-	UPROPERTY(Replicated)
-	float CurrentHealth;
-    
-	UPROPERTY(Replicated)
-	float MaxHealth;
+	TObjectPtr<UHealthBarWidget> HealthBarWidget;
 };

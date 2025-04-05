@@ -10,6 +10,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "GameplayEffect.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Component/TeamComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -66,10 +67,6 @@ EGameTeam AMobaDegreeCharacter::GetTeamInterface_Implementation() const
 	return TeamComponent->GetTeam();
 }
 
-void AMobaDegreeCharacter::MoveToLocation()
-{
-}
-
 void AMobaDegreeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -87,4 +84,9 @@ void AMobaDegreeCharacter::InitializeAttribute()
 	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
 	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+}
+
+void AMobaDegreeCharacter::MoveToLocation(FVector Location)
+{
+	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), Location);
 }

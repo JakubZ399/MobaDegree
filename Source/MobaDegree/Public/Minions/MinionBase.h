@@ -46,12 +46,18 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
 
+
+	//Health
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TObjectPtr<UHealthComponent> HealthComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "A_GAS")
 	TObjectPtr<UWidgetComponent> HealthBarWidget;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "A_GAS")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+	//
+	
 	UFUNCTION()
 	void OnRep_TeamComponent();
 
