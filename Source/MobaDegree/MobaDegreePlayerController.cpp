@@ -1,7 +1,6 @@
 // 2025 Jakub Żurawik. All Rights Reserved.
 
 #include "MobaDegreePlayerController.h"
-
 #include "AIController.h"
 #include "GameFramework/Pawn.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
@@ -63,29 +62,78 @@ void AMobaDegreePlayerController::OnInputStarted()
     StopMovement();
 }
 
-void AMobaDegreePlayerController::OnSetDestinationTriggered()
-{
-}
-
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
     float CurrentTime = GetWorld()->GetTimeSeconds();
     float ClickDuration = CurrentTime - StartClickTime;
-
+    
     if (ClickDuration < ShortPressThreshold)
     {
+        FHitResult HitPawnResult;
+        bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
+
+        if (bHitSuccessfulHitPawn && PlayerCharacter)
+        {
+            AActor* HitActor = HitPawnResult.GetActor();
+            
+            if (HitActor && HitActor != PlayerCharacter)
+            {
+                APawn* HitPawn = Cast<APawn>(HitActor);
+                if (HitPawn)
+                {
+                    IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(HitPawn);
+                    IMobaTeamInterface* PlayerTeamInterface = Cast<IMobaTeamInterface>(PlayerCharacter);
+                    
+                    if (TeamInterface && PlayerTeamInterface && 
+                        TeamInterface->Execute_GetTeamInterface(HitPawn) != PlayerTeamInterface->Execute_GetTeamInterface(PlayerCharacter))
+                    {
+                        bPawnClicked = true;
+                        ProcessTargetSelection(HitActor);
+                        return;
+                    }
+                }
+            }
+        }
+        
         FHitResult Hit;
         bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-
+        
         if (bHitSuccessful)
         {
             CachedDestination = Hit.Location;
+            if (PlayerCharacter && PlayerCharacter->AttackTarget)
+            {
+                ChangeOutline(PlayerCharacter->AttackTarget, false);
+                Server_ClearTarget();
+            }
+            
             SpawnCursorFX(CachedDestination);
-
+            
             UE_LOG(LogTemplateCharacter, Log, TEXT("Click detected at location: %s"), *CachedDestination.ToString());
         }
     }
+    
     bPawnClicked = false;
+}
+
+void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
+{
+    if (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor)
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("Already targeting"));
+        return;
+    }
+
+    AActor* OldTarget = PlayerCharacter ? PlayerCharacter->AttackTarget : nullptr;
+    
+    if (OldTarget)
+    {
+        ChangeOutline(OldTarget, false);
+    }
+    
+    ChangeOutline(TargetActor, true);
+
+    Server_SelectTarget(TargetActor);
 }
 
 void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
@@ -98,8 +146,72 @@ void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
 
 void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
 {
-    if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OutlineActor))
+    if (OutlineActor && IsLocalController())
     {
-        MobaInteraction->Execute_ShowOutline(OutlineActor, ShowOutline);
+        UE_LOG(LogTemplateCharacter, Log, TEXT("ChangeOutline: Actor=%s, Show=%s"), 
+            *OutlineActor->GetName(), ShowOutline ? TEXT("true") : TEXT("false"));
+            
+        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OutlineActor))
+        {
+            UE_LOG(LogTemplateCharacter, Log, TEXT("Calling ShowOutline interface"));
+            MobaInteraction->Execute_ShowOutline(OutlineActor, ShowOutline);
+        }
+        else
+        {
+            UE_LOG(LogTemplateCharacter, Warning, TEXT("Actor does not implement IMobaInteraction"));
+        }
     }
+    else if (!OutlineActor)
+    {
+        UE_LOG(LogTemplateCharacter, Warning, TEXT("ChangeOutline called with null actor"));
+    }
+}
+
+void AMobaDegreePlayerController::Server_SelectTarget_Implementation(AActor* Target)
+{
+    if (!IsValid(PlayerCharacter) || !IsValid(Target)) 
+    {
+        return;
+    }
+    
+    AActor* OldTarget = PlayerCharacter->AttackTarget;
+    PlayerCharacter->OldAttackTarget = OldTarget;
+    PlayerCharacter->AttackTarget = Target;
+
+    Client_OnTargetChanged(OldTarget, Target);
+    
+    UE_LOG(LogTemplateCharacter, Log, TEXT("Target selected: %s"), *Target->GetName());
+}
+
+void AMobaDegreePlayerController::Client_OnTargetChanged_Implementation(AActor* OldTarget, AActor* NewTarget)
+{
+    UE_LOG(LogTemplateCharacter, Log, TEXT("Client_OnTargetChanged: OldTarget=%s, NewTarget=%s"), 
+        OldTarget ? *OldTarget->GetName() : TEXT("None"),
+        NewTarget ? *NewTarget->GetName() : TEXT("None"));
+
+    if (OldTarget)
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("Disabling outline for: %s"), *OldTarget->GetName());
+        ChangeOutline(OldTarget, false);
+    }
+
+    if (NewTarget)
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("Enabling outline for: %s"), *NewTarget->GetName());
+        ChangeOutline(NewTarget, true);
+    }
+}
+
+void AMobaDegreePlayerController::Server_ClearTarget_Implementation()
+{
+    if (!IsValid(PlayerCharacter) || !PlayerCharacter->AttackTarget) 
+    {
+        return;
+    }
+    
+    AActor* OldTarget = PlayerCharacter->AttackTarget;
+    PlayerCharacter->OldAttackTarget = OldTarget;
+    PlayerCharacter->AttackTarget = nullptr;
+
+    Client_OnTargetChanged(OldTarget, nullptr);
 }

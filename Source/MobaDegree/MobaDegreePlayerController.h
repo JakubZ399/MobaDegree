@@ -21,32 +21,40 @@ class AMobaDegreePlayerController : public APlayerController
 
 public:
     AMobaDegreePlayerController();
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     float ShortPressThreshold = 0.2f;
-    
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputMappingContext* DefaultMappingContext;
-
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputAction* SetDestinationClickAction;
 
     UFUNCTION(BlueprintCallable)
     void ChangeOutline(AActor* OutlineActor, bool ShowOutline);
 
+    UFUNCTION(Client, Reliable)
+    void Client_OnTargetChanged(AActor* OldTarget, AActor* NewTarget);
+
 protected:
     virtual void SetupInputComponent() override;
-
     virtual void BeginPlay() override;
 
     void OnInputStarted();
-    void OnSetDestinationTriggered();
     void OnSetDestinationReleased();
 
     void SpawnCursorFX(const FVector& Location);
+    void ProcessTargetSelection(AActor* TargetActor);
+    
+    UFUNCTION(Server, Reliable)
+    void Server_SelectTarget(AActor* Target);
+    
+    UFUNCTION(Server, Reliable)
+    void Server_ClearTarget();
 
 private:
     FVector CachedDestination;
