@@ -21,13 +21,18 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetBarValue_Implementation(float BarValue) override;
 
-private:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthProgressBar"), meta = (AllowPrivateAccess = "true"))
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthProgressBar"))
 	TObjectPtr<UProgressBar> HealthProgressBar;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthBarBox"), meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthBarBox"))
 	TObjectPtr<USizeBox> HealthBarBox;
 
+	UFUNCTION(BlueprintCallable)
+	void SetupProgressBar(ESlateBrushRoundingType::Type RoundingType, float Width);
+
+	UFUNCTION(BlueprintCallable)
+	void SetupSizeBox(float Width, float Height);
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UProgressBar* GetHealthProgressBar() { return HealthProgressBar.Get(); }

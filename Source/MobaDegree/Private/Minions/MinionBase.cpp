@@ -25,7 +25,6 @@ AMinionBase::AMinionBase()
 	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("MobaAttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("Team Component");
-	TeamComponent->SetIsReplicated(true);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
 
