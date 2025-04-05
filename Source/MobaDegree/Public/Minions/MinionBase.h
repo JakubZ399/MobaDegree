@@ -39,13 +39,12 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS", Instanced)
 	TObjectPtr<UMobaAttributeSet> MobaAttributeSet;
-
+	
+	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
+	TObjectPtr<UTeamComponent> TeamComponent;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
-
-	UPROPERTY(ReplicatedUsing = OnRep_TeamComponent, VisibleAnywhere, BlueprintReadWrite, Category = "Setup|A_GAS")
-	TObjectPtr<UTeamComponent> TeamComponent;
-
 
 	//Health
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")

@@ -106,11 +106,11 @@ void AMinionsGroupPawn::Initialize()
 	SetActorRotation(NewRotation);
 
 	SetAttackTargetBlackboard(EnemyLaneTarget, EnemyLaneTargetKey);
-	if (bDebugRespawnMelee)
+	if (bDebugRespawnMelee && MeleeMinionClass)
 	{
 		MinionsSpawn(MeleeMinionClass, SpawnPointMinionMelee);
 	}
-	if (bDebugRespawnRanged)
+	if (bDebugRespawnRanged && RangedMinionClass)
 	{
 		MinionsSpawn(RangedMinionClass, SpawnPointMinionRanged);
 	}
@@ -131,7 +131,7 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 			
 			AMinionBase* SpawnedMinion = GetWorld()->SpawnActor<AMinionBase>(MinionClass, SpawnPoint->GetComponentLocation(), SpawnPoint->GetComponentRotation(), SpawnParameters);
 
-			if (SpawnedMinion)
+			if (SpawnedMinion && SpawnedMinion->TeamComponent)
 			{
 				SpawnedMinion->TeamComponent->SetTeam(Team);
 				SpawnedMinion->HomeBase = SpawnPoint;

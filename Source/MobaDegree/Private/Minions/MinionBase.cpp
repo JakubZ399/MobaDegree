@@ -26,15 +26,14 @@ AMinionBase::AMinionBase()
 	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("MobaAttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>(TEXT("MinionTeamComponent"));
+	TeamComponent->SetIsReplicated(true);
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health Component"));
 
 	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("Health Bar Widget"));
 	HealthBarWidget->SetIsReplicated(true);
 	HealthBarWidget->SetupAttachment(RootComponent);
-	HealthBarWidget->SetDrawAtDesiredSize(true);
 	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
-	HealthBarWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	HealthBarWidget->SetDrawAtDesiredSize(true);
 }
 
