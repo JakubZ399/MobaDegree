@@ -25,14 +25,26 @@ AMobaDegreePlayerController::AMobaDegreePlayerController()
     CachedDestination = FVector::ZeroVector;
 }
 
+void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(InPawn);
+    
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] OnPossess - PlayerCharacter: %s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"),
+        PlayerCharacter ? *PlayerCharacter->GetName() : TEXT("None"));
+}
+
 void AMobaDegreePlayerController::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (IsLocalController())
-    {
-        PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-    }
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+    
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] BeginPlay - PlayerCharacter: %s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"),
+        PlayerCharacter ? *PlayerCharacter->GetName() : TEXT("None"));
 }
 
 void AMobaDegreePlayerController::SetupInputComponent()
@@ -67,6 +79,10 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
     float CurrentTime = GetWorld()->GetTimeSeconds();
     float ClickDuration = CurrentTime - StartClickTime;
     
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] OnSetDestinationReleased - Click duration: %f"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+        ClickDuration);
+    
     if (ClickDuration < ShortPressThreshold)
     {
         FHitResult HitPawnResult;
@@ -78,6 +94,10 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
             
             if (HitActor && HitActor != PlayerCharacter)
             {
+                UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Hit Actor: %s"), 
+                    IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+                    *HitActor->GetName());
+                
                 APawn* HitPawn = Cast<APawn>(HitActor);
                 if (HitPawn)
                 {
@@ -94,22 +114,35 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
                 }
             }
         }
-        
+
         FHitResult Hit;
         bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
         
         if (bHitSuccessful)
         {
             CachedDestination = Hit.Location;
+            
+            UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Clicked on ground, clearing target. Current target: %s"), 
+                IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+                PlayerCharacter && PlayerCharacter->AttackTarget ? *PlayerCharacter->AttackTarget->GetName() : TEXT("None"));
+
             if (PlayerCharacter && PlayerCharacter->AttackTarget)
             {
-                ChangeOutline(PlayerCharacter->AttackTarget, false);
-                Server_ClearTarget();
+                UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Locally disabling outline for: %s"), 
+                    IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+                    *PlayerCharacter->AttackTarget->GetName());
+
+                if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
+                {
+                    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Directly executing ShowOutline(false)"), 
+                        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"));
+                    MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false);
+                }
             }
+
+            Server_ClearTarget();
             
             SpawnCursorFX(CachedDestination);
-            
-            UE_LOG(LogTemplateCharacter, Log, TEXT("Click detected at location: %s"), *CachedDestination.ToString());
         }
     }
     
@@ -118,20 +151,40 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
 
 void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
 {
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] ProcessTargetSelection: %s, Current target: %s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+        *TargetActor->GetName(), 
+        PlayerCharacter && PlayerCharacter->AttackTarget ? *PlayerCharacter->AttackTarget->GetName() : TEXT("None"));
+
     if (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor)
     {
-        UE_LOG(LogTemplateCharacter, Log, TEXT("Already targeting"));
+        UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Already targeting %s"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+            *TargetActor->GetName());
         return;
     }
 
     AActor* OldTarget = PlayerCharacter ? PlayerCharacter->AttackTarget : nullptr;
-    
     if (OldTarget)
     {
-        ChangeOutline(OldTarget, false);
+        UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Locally disabling outline for old target: %s"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+            *OldTarget->GetName());
+        
+        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OldTarget))
+        {
+            MobaInteraction->Execute_ShowOutline(OldTarget, false);
+        }
     }
+
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Locally enabling outline for new target: %s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+        *TargetActor->GetName());
     
-    ChangeOutline(TargetActor, true);
+    if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(TargetActor))
+    {
+        MobaInteraction->Execute_ShowOutline(TargetActor, true);
+    }
 
     Server_SelectTarget(TargetActor);
 }
@@ -146,72 +199,115 @@ void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
 
 void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
 {
-    if (OutlineActor && IsLocalController())
+    if (!OutlineActor)
     {
-        UE_LOG(LogTemplateCharacter, Log, TEXT("ChangeOutline: Actor=%s, Show=%s"), 
-            *OutlineActor->GetName(), ShowOutline ? TEXT("true") : TEXT("false"));
-            
-        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OutlineActor))
-        {
-            UE_LOG(LogTemplateCharacter, Log, TEXT("Calling ShowOutline interface"));
-            MobaInteraction->Execute_ShowOutline(OutlineActor, ShowOutline);
-        }
-        else
-        {
-            UE_LOG(LogTemplateCharacter, Warning, TEXT("Actor does not implement IMobaInteraction"));
-        }
+        UE_LOG(LogTemplateCharacter, Warning, TEXT("[%s] ChangeOutline called with null actor"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"));
+        return;
     }
-    else if (!OutlineActor)
+
+    if (!IsLocalController())
     {
-        UE_LOG(LogTemplateCharacter, Warning, TEXT("ChangeOutline called with null actor"));
+        UE_LOG(LogTemplateCharacter, Warning, TEXT("[%s] ChangeOutline called on non-local controller for %s"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+            *OutlineActor->GetName());
+        return;
+    }
+    
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] ChangeOutline: Actor=%s, Show=%s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+        *OutlineActor->GetName(), ShowOutline ? TEXT("true") : TEXT("false"));
+        
+    if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OutlineActor))
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Calling ShowOutline interface on %s"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+            *OutlineActor->GetName());
+        MobaInteraction->Execute_ShowOutline(OutlineActor, ShowOutline);
+    }
+    else
+    {
+        UE_LOG(LogTemplateCharacter, Warning, TEXT("[%s] Actor %s does not implement IMobaInteraction"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+            *OutlineActor->GetName());
     }
 }
 
 void AMobaDegreePlayerController::Server_SelectTarget_Implementation(AActor* Target)
 {
-    if (!IsValid(PlayerCharacter) || !IsValid(Target)) 
+    AMobaDegreeCharacter* TargetCharacter = nullptr;
+    
+    if (PlayerCharacter)
     {
+        TargetCharacter = PlayerCharacter;
+    }
+    else
+    {
+        TargetCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+    }
+    
+    if (!IsValid(TargetCharacter) || !IsValid(Target)) 
+    {
+        UE_LOG(LogTemplateCharacter, Error, TEXT("[SERVER] Server_SelectTarget: Invalid Character or Target. PlayerCharacter=%s, GetPawn()=%s, Target=%s"), 
+            PlayerCharacter ? *PlayerCharacter->GetName() : TEXT("None"),
+            GetPawn() ? *GetPawn()->GetName() : TEXT("None"),
+            Target ? *Target->GetName() : TEXT("None"));
         return;
     }
     
-    AActor* OldTarget = PlayerCharacter->AttackTarget;
-    PlayerCharacter->OldAttackTarget = OldTarget;
-    PlayerCharacter->AttackTarget = Target;
+    AActor* OldTarget = TargetCharacter->AttackTarget;
+    TargetCharacter->OldAttackTarget = OldTarget;
+    TargetCharacter->AttackTarget = Target;
+
+    PlayerCharacter = TargetCharacter;
 
     Client_OnTargetChanged(OldTarget, Target);
-    
-    UE_LOG(LogTemplateCharacter, Log, TEXT("Target selected: %s"), *Target->GetName());
 }
 
 void AMobaDegreePlayerController::Client_OnTargetChanged_Implementation(AActor* OldTarget, AActor* NewTarget)
 {
-    UE_LOG(LogTemplateCharacter, Log, TEXT("Client_OnTargetChanged: OldTarget=%s, NewTarget=%s"), 
-        OldTarget ? *OldTarget->GetName() : TEXT("None"),
+    UE_LOG(LogTemplateCharacter, Log, TEXT("[%s] Client_OnTargetChanged: Old=%s, New=%s"), 
+        IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"), 
+        OldTarget ? *OldTarget->GetName() : TEXT("None"), 
         NewTarget ? *NewTarget->GetName() : TEXT("None"));
 
-    if (OldTarget)
+    if (!IsLocalController())
     {
-        UE_LOG(LogTemplateCharacter, Log, TEXT("Disabling outline for: %s"), *OldTarget->GetName());
-        ChangeOutline(OldTarget, false);
+        UE_LOG(LogTemplateCharacter, Warning, TEXT("[%s] Client_OnTargetChanged called on non-local controller"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"));
+        return;
     }
 
-    if (NewTarget)
+    if (PlayerCharacter)
     {
-        UE_LOG(LogTemplateCharacter, Log, TEXT("Enabling outline for: %s"), *NewTarget->GetName());
-        ChangeOutline(NewTarget, true);
+        PlayerCharacter->AttackTarget = NewTarget;
+    }
+    else
+    {
+        UE_LOG(LogTemplateCharacter, Error, TEXT("[%s] Client_OnTargetChanged: PlayerCharacter is null"), 
+            IsRunningDedicatedServer() ? TEXT("SERVER") : IsLocalPlayerController() ? TEXT("CLIENT") : TEXT("HOST"));
     }
 }
 
 void AMobaDegreePlayerController::Server_ClearTarget_Implementation()
 {
-    if (!IsValid(PlayerCharacter) || !PlayerCharacter->AttackTarget) 
+    if (!IsValid(PlayerCharacter)) 
     {
+        UE_LOG(LogTemplateCharacter, Error, TEXT("[SERVER] Server_ClearTarget: Invalid PlayerCharacter"));
         return;
     }
     
     AActor* OldTarget = PlayerCharacter->AttackTarget;
-    PlayerCharacter->OldAttackTarget = OldTarget;
-    PlayerCharacter->AttackTarget = nullptr;
+    if (OldTarget)
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("[SERVER] Server_ClearTarget: Clearing target %s"), *OldTarget->GetName());
+        PlayerCharacter->OldAttackTarget = OldTarget;
+        PlayerCharacter->AttackTarget = nullptr;
 
-    Client_OnTargetChanged(OldTarget, nullptr);
+        Client_OnTargetChanged(OldTarget, nullptr);
+    }
+    else
+    {
+        UE_LOG(LogTemplateCharacter, Log, TEXT("[SERVER] Server_ClearTarget: No target to clear"));
+    }
 }

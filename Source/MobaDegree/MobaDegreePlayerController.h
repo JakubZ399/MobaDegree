@@ -22,6 +22,8 @@ class AMobaDegreePlayerController : public APlayerController
 public:
     AMobaDegreePlayerController();
 
+    virtual void OnPossess(APawn* InPawn) override;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     float ShortPressThreshold = 0.2f;
 
