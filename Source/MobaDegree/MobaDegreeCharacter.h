@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #pragma once
 
@@ -9,6 +9,7 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
+class UPathFollowingComponent;
 class UMobaAttributeSet;
 class UMobaDefaultPlayerAttributeSet;
 class UTeamComponent;
@@ -36,6 +37,9 @@ public:
 
 	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
+	UFUNCTION()
+	void MoveToLocation();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -60,6 +64,4 @@ private:
 public:
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	
 };
-

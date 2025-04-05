@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #include "MobaDegreeCharacter.h"
 #include "UObject/ConstructorHelpers.h"
@@ -12,12 +12,10 @@
 #include "GameplayEffect.h"
 #include "Component/TeamComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
+#include "Navigation/PathFollowingComponent.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
-
-	//TODO::Setup Collision channel ToDetect
-	bReplicates = true;
 	// Set size for player capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
@@ -66,6 +64,10 @@ UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const
 EGameTeam AMobaDegreeCharacter::GetTeamInterface_Implementation() const
 {
 	return TeamComponent->GetTeam();
+}
+
+void AMobaDegreeCharacter::MoveToLocation()
+{
 }
 
 void AMobaDegreeCharacter::BeginPlay()

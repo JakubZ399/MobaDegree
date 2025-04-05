@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+// 2025 Jakub Żurawik. All Rights Reserved.
 
 #pragma once
 
@@ -21,20 +21,16 @@ class AMobaDegreePlayerController : public APlayerController
 
 public:
     AMobaDegreePlayerController();
-
-    /** Time Threshold to know if it was a short press */
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     float ShortPressThreshold = 0.2f;
-
-    /** FX Class that we will spawn when clicking */
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
 
-    /** MappingContext */
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputMappingContext* DefaultMappingContext;
-    
-    /** Destination Click Input Action */
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputAction* SetDestinationClickAction;
 
@@ -43,38 +39,19 @@ public:
 
 protected:
     virtual void SetupInputComponent() override;
-    
-    // To add mapping context
+
     virtual void BeginPlay() override;
 
-    /** Input handlers for SetDestination action. */
     void OnInputStarted();
     void OnSetDestinationTriggered();
     void OnSetDestinationReleased();
 
-    // Spawn cursor FX locally (client only)
     void SpawnCursorFX(const FVector& Location);
-    
-    // Handle movement to a point
-    void ProcessMovementToLocation(const FVector& Location);
-    
-    // Handle target selection
-    void ProcessTargetSelection(AActor* TargetActor);
-    
-    // Replication functions
-    UFUNCTION(Server, Reliable)
-    void Server_MoveToLocation(const FVector& Location);
-    
-    UFUNCTION(Server, Reliable)
-    void Server_SelectTarget(AActor* Target);
-
-    UFUNCTION(Server, Reliable)
-    void Server_ClearTarget();
 
 private:
     FVector CachedDestination;
     bool bPawnClicked = false;
-    float FollowTime = 0.0f; // For how long it has been pressed
+    float StartClickTime = 0.0f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
