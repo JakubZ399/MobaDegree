@@ -39,8 +39,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
-	UPROPERTY(Transient)
-	UMobaAttributeSet* AttributeSet;
+	UPROPERTY(Instanced)
+	TObjectPtr<UMobaAttributeSet> MobaAttributeSet;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;

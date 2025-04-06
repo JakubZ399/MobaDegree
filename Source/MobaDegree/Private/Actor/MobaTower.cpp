@@ -39,7 +39,7 @@ AMobaTower::AMobaTower()
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
+	MobaAttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
@@ -89,7 +89,7 @@ void AMobaTower::BeginPlay()
 
 void AMobaTower::InitializeAttribute()
 {
-	if (AbilitySystemComponent && AttributeSet && InitEffect)
+	if (AbilitySystemComponent && MobaAttributeSet && InitEffect)
 	{
 		FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);

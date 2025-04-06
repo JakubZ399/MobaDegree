@@ -55,7 +55,12 @@ void UHealthComponent::HealthBarInitialization()
 void UHealthComponent::OnHealthWidgetChange(const FOnAttributeChangeData& Data)
 {
     float CurrentHealth = Data.NewValue;
+    float OldHealth = Data.OldValue;
 
+    UE_LOG(LogTemp, Warning, TEXT("Health changed from %.2f to %.2f (MaxHealth = %.2f) on %s"), 
+          OldHealth, CurrentHealth, MaxHealth, OwnerPawn->HasAuthority() ? TEXT("Server") : TEXT("Client"));
+
+    
     if (MaxHealth > 0)
     {
         float HealthPercent = FMath::Clamp(CurrentHealth / MaxHealth, 0.f, 1.f);
