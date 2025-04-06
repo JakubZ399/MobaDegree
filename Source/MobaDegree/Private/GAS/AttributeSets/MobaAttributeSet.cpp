@@ -3,11 +3,28 @@
 
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 
+#include "GameplayEffectExtension.h"
 #include "Net/UnrealNetwork.h"
 
 UMobaAttributeSet::UMobaAttributeSet()
 	:  Health(250.f), MaxHealth(250.f), Mana(450.f), MaxMana(450.f), AttackDamage(25.f), AttackRange(30.f), AttackSpeed(1.f), MovementSpeed(300.f)
 {
+}
+
+void UMobaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
+{
+	Super::PreAttributeChange(Attribute, NewValue);
+
+}
+
+void UMobaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
+{
+	Super::PostGameplayEffectExecute(Data);
+	
+	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, MaxHealth: %f"), Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
+	}
 }
 
 void UMobaAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
