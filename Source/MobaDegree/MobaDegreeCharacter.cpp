@@ -11,7 +11,9 @@
 #include "Engine/World.h"
 #include "GameplayEffect.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
+#include "Components/WidgetComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Navigation/PathFollowingComponent.h"
 
@@ -55,6 +57,14 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
+	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidget"));
+	HealthBarWidget->SetIsReplicated(true);
+	HealthBarWidget->SetupAttachment(RootComponent);
+	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
+	HealthBarWidget->SetDrawAtDesiredSize(true);
 }
 
 UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const
@@ -72,6 +82,12 @@ void AMobaDegreeCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	InitializeAttribute();
+
+	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
+	{
+		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+		HealthComponent->HealthBarInitialization();
+	}
 }
 
 void AMobaDegreeCharacter::Tick(float DeltaSeconds)

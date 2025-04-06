@@ -67,9 +67,11 @@ void AMinionBase::BeginPlay()
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
 	}
 
+	//Health
 	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
 	{
 		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+		HealthComponent->HealthBarInitialization();
 	}
 }
 

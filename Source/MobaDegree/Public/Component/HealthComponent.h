@@ -27,6 +27,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void SetHealthBarWidgetFromOwner(UWidgetComponent* Widget);
 
+	void HealthBarInitialization();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -36,4 +38,14 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<UHealthBarWidget> HealthBarWidget;
+
+	UPROPERTY()
+	TObjectPtr<APawn> OwnerPawn;
+
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> OwnerAbilitySystemComponent;
+
+	void OnHealthWidgetChange(const FOnAttributeChangeData& Data);
+
+	float MaxHealth{0.f};
 };

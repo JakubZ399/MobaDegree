@@ -7,6 +7,7 @@
 #include "GameplayEffectExtension.h"
 #include "Actor/Tower/TowerShot.h"
 #include "Component/AttackComponent.h"
+#include "Component/HealthComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Component/TeamComponent.h"
@@ -43,29 +44,18 @@ AMobaTower::AMobaTower()
 	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
 	TeamComponent->SetIsReplicated(true);
 
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
+
 	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>("Health Bar Widget");
-	HealthBarWidget->SetupAttachment(GetRootComponent());
 	HealthBarWidget->SetIsReplicated(true);
+	HealthBarWidget->SetupAttachment(RootComponent);
 	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
-	
+	HealthBarWidget->SetDrawAtDesiredSize(true);
 }
 
 void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
-	if (HealthBarWidgetInterface && bIsLoaded)
-	{
-		float MaxHealth = GetAttributeTower(UMobaAttributeSet::GetMaxHealthAttribute());
-		float CurrentHealth = (MaxHealth > 0.f) ? GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) / MaxHealth : 0.f;
-		IUIInterface::Execute_SetBarValue(HealthBarWidgetInterface.GetObject(), CurrentHealth);
-
-		if (GetAttributeTower(UMobaAttributeSet::GetHealthAttribute()) <= 0.f)
-		{
-			Destroy();
-		}
-	}
-
 }
 
 void AMobaTower::BeginPlay()
@@ -81,21 +71,13 @@ void AMobaTower::BeginPlay()
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
 
 	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
-	
-	bIsLoaded = true;
-	
 
-	if (HealthBarWidget)
+	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
 	{
-		if (UWidget* Widget = HealthBarWidget->GetWidget())
-		{
-			if (Cast<IUIInterface>(Widget))
-			{
-				HealthBarWidgetInterface = Widget;
-				IUIInterface::Execute_SetBarValue(HealthBarWidgetInterface.GetObject(), 1.f);
-			}
-		}
+		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+		HealthComponent->HealthBarInitialization();
 	}
+	
 	if (TowerAttackClass)
 	{
 		if (HasAuthority())

@@ -9,6 +9,8 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
+class UWidgetComponent;
+class UHealthComponent;
 class UPathFollowingComponent;
 class UMobaAttributeSet;
 class UMobaDefaultPlayerAttributeSet;
@@ -35,6 +37,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<UTeamComponent> TeamComponent;
 
+	
+
 	virtual EGameTeam GetTeamInterface_Implementation() const override;
 
 	//temp solution
@@ -59,7 +63,18 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(EditAnywhere, Category = _GAS)
+	//Health
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHealthComponent> HealthComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UWidgetComponent> HealthBarWidget;
+
+	UPROPERTY(EditAnywhere, Category = "Setup")
+	TSubclassOf<UUserWidget> HealthBarWidgetClass;
+	//
+	
+	UPROPERTY(EditAnywhere, Category = "Setup|GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
 public:

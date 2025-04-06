@@ -19,7 +19,7 @@ class UMobaAttributeSet;
 class UTeamComponent;
 class UAttackComponent;
 class USphereComponent;
-
+class UHealthComponent;
 UCLASS()
 class MOBADEGREE_API AMobaTower : public APawn, public IAbilitySystemInterface, public IMobaTeamInterface, public IMobaInteraction
 {
@@ -73,6 +73,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USphereComponent> TowerRadius;
 
+	//Health
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UHealthComponent> HealthComponent;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UWidgetComponent> HealthBarWidget;
 
@@ -81,7 +85,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = "Tower|Setup", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayAbility> TowerAttackClass;
-
+	//
+	
 	UPROPERTY(EditAnywhere, Category = "Tower|Setup")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
