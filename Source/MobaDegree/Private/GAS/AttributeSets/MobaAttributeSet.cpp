@@ -23,7 +23,7 @@ void UMobaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, MaxHealth: %f"), Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
+		//UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, MaxHealth: %f"), Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
 	}
 }
 
@@ -44,6 +44,8 @@ void UMobaAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 void UMobaAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, Health, OldHealth);
+
+	UE_LOG(LogTemp, Error, TEXT("Health Changed To: %f, MaxHealth: %f, Actor: %s"), Health.GetCurrentValue(), OldHealth.GetCurrentValue(), *GetOwningActor()->GetName());
 }
 
 void UMobaAttributeSet::OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth)

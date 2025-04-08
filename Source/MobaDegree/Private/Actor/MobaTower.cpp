@@ -14,6 +14,7 @@
 #include "Components/WidgetComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Interfaces/UIInterface.h"
+#include "Net/UnrealNetwork.h"
 
 AMobaTower::AMobaTower()
 {
@@ -51,6 +52,8 @@ AMobaTower::AMobaTower()
 	HealthBarWidget->SetupAttachment(RootComponent);
 	HealthBarWidget->SetWidgetClass(HealthBarWidgetClass);
 	HealthBarWidget->SetDrawAtDesiredSize(true);
+
+	bAttributeInitialized = false;
 }
 
 void AMobaTower::Tick(float DeltaTime)
@@ -64,6 +67,11 @@ void AMobaTower::BeginPlay()
 	
 	
 	InitializeAttribute();
+
+	if (HasAuthority())
+	{
+		bAttributeInitialized = true;
+	}
 
 	checkf(AbilitySystemComponent, TEXT("AbilitySystemComponent is not set on Tower!"));
 
@@ -85,6 +93,18 @@ void AMobaTower::BeginPlay()
 			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
 		}
 	}
+}
+
+void AMobaTower::OnRep_bAttributeInitialized()
+{
+	InitializeAttribute();
+}
+
+void AMobaTower::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(AMobaTower, bAttributeInitialized, COND_None, REPNOTIFY_Always);
 }
 
 void AMobaTower::InitializeAttribute()

@@ -46,6 +46,14 @@ public:
 	TObjectPtr<UTeamComponent> TeamComponent;
 
 	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+
+	UPROPERTY(ReplicatedUsing = OnRep_bAttributeInitialized)
+	bool bAttributeInitialized = false;
+
+	UFUNCTION()
+	void OnRep_bAttributeInitialized();
+
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
  
 	
 protected:
