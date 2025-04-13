@@ -79,12 +79,6 @@ void AMobaTower::BeginPlay()
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
 
 	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
-
-	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
-	{
-		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
-		HealthComponent->HealthBarInitialization();
-	}
 	
 	if (TowerAttackClass)
 	{
@@ -92,6 +86,12 @@ void AMobaTower::BeginPlay()
 		{
 			AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
 		}
+	}
+
+	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
+	{
+		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+		HealthComponent->HealthBarInitialization();
 	}
 }
 
@@ -111,6 +111,8 @@ void AMobaTower::InitializeAttribute()
 {
 	if (AbilitySystemComponent && MobaAttributeSet && InitEffect)
 	{
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+		
 		FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
 		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());

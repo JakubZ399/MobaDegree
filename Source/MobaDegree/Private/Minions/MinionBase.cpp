@@ -65,6 +65,7 @@ void AMinionBase::BeginPlay()
 	if (HasAuthority() && BaseAttack)
 	{
 		AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(BaseAttack, 1));
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
 	}
 
 	//Health

@@ -121,6 +121,7 @@ void AMobaDegreeCharacter::InitializeAttribute()
 	{
 		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
 		HealthComponent->HealthBarInitialization();
+		HealthComponent->RefreshHealthBar();
 	}
 }
 
