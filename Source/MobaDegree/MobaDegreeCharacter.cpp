@@ -14,26 +14,26 @@
 #include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GAS/MobaAbilitySystemComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "Player/MobaPlayerState.h"
 
 AMobaDegreeCharacter::AMobaDegreeCharacter()
 {
-	// Set size for player capsule
+	bAlwaysRelevant = true;
+
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 
-	// Don't rotate character to camera direction
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
-	// Create a camera boom...
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->SetUsingAbsoluteRotation(true);
@@ -48,16 +48,6 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	//GAS
-	AbilitySystemComponent = CreateDefaultSubobject<UAbilitySystemComponent>("AbilitySystemComponent");
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	AttributeSet = CreateDefaultSubobject<UMobaAttributeSet>(TEXT("AttributeSet"));
-
-	TeamComponent = CreateDefaultSubobject<UTeamComponent>("TeamComponent");
-	TeamComponent->SetIsReplicated(true);
-
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
 	HealthBarWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBarWidget"));
@@ -69,25 +59,23 @@ AMobaDegreeCharacter::AMobaDegreeCharacter()
 
 UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
+	if (!MobaPlayerState) return nullptr;
+	
+	return MobaPlayerState->GetAbilitySystemComponent();
 }
 
 EGameTeam AMobaDegreeCharacter::GetTeamInterface_Implementation() const
 {
-	return TeamComponent->GetTeam();
+	if (!MobaPlayerState) return EGameTeam::None;
+	
+	return MobaPlayerState->GetTeamComponent()->GetTeam();
 }
 
 void AMobaDegreeCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	InitializeAttribute();
-
-	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
-	{
-		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
-		HealthComponent->HealthBarInitialization();
-	}
+	MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
 }
 
 void AMobaDegreeCharacter::Tick(float DeltaSeconds)
@@ -95,11 +83,57 @@ void AMobaDegreeCharacter::Tick(float DeltaSeconds)
     Super::Tick(DeltaSeconds);
 }
 
+void AMobaDegreeCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
+	
+	InitAbilityActorInfo();
+	InitializeAttribute();
+}
+
+void AMobaDegreeCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
+	
+	InitAbilityActorInfo();
+	InitializeAttribute();
+}
+
 void AMobaDegreeCharacter::InitializeAttribute()
 {
+	if (!AbilitySystemComponent) return;
+	if (!InitEffect) return;
+	
 	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1 , EffectContextHandle);
-	AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	EffectContextHandle.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1, EffectContextHandle);
+	if (SpecHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
+	
+	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())
+	{
+		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+		HealthComponent->HealthBarInitialization();
+	}
+}
+
+void AMobaDegreeCharacter::InitAbilityActorInfo()
+{
+	if (GetAbilitySystemComponent() && MobaPlayerState)
+	{
+		AbilitySystemComponent = Cast<UMobaAbilitySystemComponent>(MobaPlayerState->GetAbilitySystemComponent());
+
+		AttributeSet = MobaPlayerState->GetMobaAttributeSet();
+		
+		GetAbilitySystemComponent()->InitAbilityActorInfo(MobaPlayerState, this);
+	}
 }
 
 void AMobaDegreeCharacter::MoveToLocation(FVector Location)

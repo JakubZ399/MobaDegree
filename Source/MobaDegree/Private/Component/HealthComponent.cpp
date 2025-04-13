@@ -36,7 +36,7 @@ void UHealthComponent::HealthBarInitialization()
         IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(OwnerPawn);
         if (AbilitySystemInterface)
         {
-            OwnerAbilitySystemComponent = AbilitySystemInterface->GetAbilitySystemComponent();
+            OwnerAbilitySystemComponent = Cast<UAbilitySystemComponent>(AbilitySystemInterface->GetAbilitySystemComponent());
             if (OwnerAbilitySystemComponent)
             {
                 const UMobaAttributeSet* AttributeSet = Cast<UMobaAttributeSet>(OwnerAbilitySystemComponent->GetAttributeSet(UMobaAttributeSet::StaticClass()));

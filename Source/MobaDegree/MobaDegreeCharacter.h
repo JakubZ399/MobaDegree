@@ -9,6 +9,8 @@
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
+class UMobaAbilitySystemComponent;
+class AMobaPlayerState;
 class UWidgetComponent;
 class UHealthComponent;
 class UPathFollowingComponent;
@@ -25,38 +27,27 @@ public:
 	AMobaDegreeCharacter();
 	virtual void Tick(float DeltaSeconds) override;
 
-	UFUNCTION(BlueprintCallable)
-	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void OnRep_PlayerState() override;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<AActor> AttackTarget;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	TObjectPtr<AActor> OldAttackTarget;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
-	TObjectPtr<UTeamComponent> TeamComponent;
-
-	
-
-	virtual EGameTeam GetTeamInterface_Implementation() const override;
-
-	//temp solution
 	UFUNCTION()
 	void MoveToLocation(FVector Location);
 
 protected:
 	virtual void BeginPlay() override;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
-	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
-	
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = _GAS)
-	TObjectPtr<UMobaAttributeSet> AttributeSet;
-
 	void InitializeAttribute();
 
 private:
+	UPROPERTY()
+	TObjectPtr<AMobaPlayerState> MobaPlayerState;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* TopDownCameraComponent;
 	
@@ -77,7 +68,23 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Setup|GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
+	UPROPERTY()
+	TObjectPtr<UMobaAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY()
+	TObjectPtr<UMobaAttributeSet> AttributeSet;
+
+	UFUNCTION()
+	void InitAbilityActorInfo();
+
 public:
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+	UFUNCTION(BlueprintCallable)
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
+
+	UFUNCTION(BlueprintCallable)
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 };
+
