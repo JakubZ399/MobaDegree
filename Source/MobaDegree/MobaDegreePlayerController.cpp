@@ -36,6 +36,10 @@ void AMobaDegreePlayerController::BeginPlay()
     Super::BeginPlay();
 
     PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+
+    bShowMouseCursor = true;
+    FInputModeGameAndUI InputMode;
+    SetInputMode(InputMode);
 }
 
 void AMobaDegreePlayerController::SetupInputComponent()
