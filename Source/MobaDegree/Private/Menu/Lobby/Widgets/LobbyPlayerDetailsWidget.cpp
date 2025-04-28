@@ -2,3 +2,11 @@
 
 
 #include "Menu/Lobby/Widgets/LobbyPlayerDetailsWidget.h"
+
+void ULobbyPlayerDetailsWidget::SetupPlayerDetails(FString PlayerName)
+{
+	if (PlayerNameText)
+	{
+		PlayerNameText->SetText(FText::FromString(PlayerName));
+	}
+}
