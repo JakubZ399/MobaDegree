@@ -11,6 +11,9 @@
 #include "EnhancedInputComponent.h"
 #include "InputActionValue.h"
 #include "EnhancedInputSubsystems.h"
+#include "NavigationPath.h"
+#include "NavigationSystem.h"
+#include "Components/SplineComponent.h"
 #include "Engine/LocalPlayer.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfaces/MobaInteraction.h"
@@ -20,9 +23,36 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AMobaDegreePlayerController::AMobaDegreePlayerController()
 {
+    bReplicates = true;
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
     CachedDestination = FVector::ZeroVector;
+
+    SplineComponent = CreateDefaultSubobject<USplineComponent>("Spline Component");
+}
+
+void AMobaDegreePlayerController::AutoRun()
+{
+    if (!bAutoRunning) return;
+    if (PlayerCharacter)
+    {
+        const FVector LocationOnSpline = SplineComponent->FindLocationClosestToWorldLocation(PlayerCharacter->GetActorLocation(), ESplineCoordinateSpace::World);
+        const FVector Direction = SplineComponent->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
+        PlayerCharacter->AddMovementInput(Direction);
+
+        const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
+        if (DistanceToDestination <= AutoRunAcceptanceRadius)
+        {
+            bAutoRunning = false;
+        }
+    }
+}
+
+void AMobaDegreePlayerController::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    AutoRun();
 }
 
 void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
@@ -54,6 +84,7 @@ void AMobaDegreePlayerController::SetupInputComponent()
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
         EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::OnInputStarted);
+        EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::OnSetDestinationTriggered);
         EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
         EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
     }
@@ -66,12 +97,49 @@ void AMobaDegreePlayerController::SetupInputComponent()
 void AMobaDegreePlayerController::OnInputStarted()
 {
     StartClickTime = GetWorld()->GetTimeSeconds();
-    StopMovement();
+    //StopMovement();
+}
+
+void AMobaDegreePlayerController::OnSetDestinationTriggered()
+{
+    /*FHitResult Hit;
+    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
+    
+    if (bHitSuccessful)
+    {
+        FollowTime += GetWorld()->GetDeltaSeconds();
+        CachedDestination = Hit.Location;
+
+        /#1#*if (PlayerCharacter && PlayerCharacter->AttackTarget)
+        {
+            if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
+            {
+                MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false);
+            }
+        }#1#
+
+        Server_ClearTarget();
+        SpawnCursorFX(CachedDestination);#1#
+
+        if (PlayerCharacter)
+        {
+            //PlayerCharacter->MoveToLocation(CachedDestination);
+
+            const FVector WorldDirection = CachedDestination - PlayerCharacter->GetActorLocation().GetSafeNormal();
+            PlayerCharacter->AddMovementInput(WorldDirection);
+        }
+        /*else
+        {
+            PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+        }#1#
+    }
+    
+    //bPawnClicked = false;*/
 }
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
-    FHitResult HitPawnResult;
+    /*FHitResult HitPawnResult;
     bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
 
     if (bHitSuccessfulHitPawn && PlayerCharacter)
@@ -95,13 +163,14 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
                 }
             }
         }
-    }
+    }*/
 
     FHitResult Hit;
-    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
     
     if (bHitSuccessful)
     {
+        FollowTime += GetWorld()->GetDeltaSeconds();
         CachedDestination = Hit.Location;
 
         if (PlayerCharacter && PlayerCharacter->AttackTarget)
@@ -117,7 +186,24 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
 
         if (PlayerCharacter)
         {
-            PlayerCharacter->MoveToLocation(CachedDestination);
+            //PlayerCharacter->MoveToLocation(CachedDestination);
+
+            if (FollowTime <= ShortPressThreshold)
+            {
+                if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), CachedDestination))
+                {
+                    SplineComponent->ClearSplinePoints();
+                    for (const FVector& Locaction : NavPath->PathPoints)
+                    {
+                        SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
+                        DrawDebugSphere(GetWorld(), Locaction, 15.f, 8, FColor::Yellow, false, 5.f);
+                    }
+                    CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+                    bAutoRunning = true;
+                }
+            }
+            FollowTime = 0;
+            bTargeting = true;
         }
         else
         {

@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MobaDegreePlayerController.generated.h"
 
+class USplineComponent;
 class UNiagaraSystem;
 class UInputMappingContext;
 class UInputAction;
@@ -21,12 +22,10 @@ class AMobaDegreePlayerController : public APlayerController
 
 public:
     AMobaDegreePlayerController();
-
+    void AutoRun();
+    virtual void Tick(float DeltaSeconds) override;
     virtual void OnPossess(APawn* InPawn) override;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-    float ShortPressThreshold = 0.2f;
-
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
 
@@ -47,6 +46,7 @@ protected:
     virtual void BeginPlay() override;
 
     void OnInputStarted();
+    void OnSetDestinationTriggered();
     void OnSetDestinationReleased();
 
     void SpawnCursorFX(const FVector& Location);
@@ -59,7 +59,19 @@ protected:
     void Server_ClearTarget();
 
 private:
-    FVector CachedDestination;
+    FVector CachedDestination = FVector::ZeroVector;
+    float FollowTime = 0;
+    float ShortPressThreshold = 0.5f;
+    bool bAutoRunning = false;
+    bool bTargeting = false;
+
+    UPROPERTY(EditDefaultsOnly)
+    float AutoRunAcceptanceRadius = 50.f;
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<USplineComponent> SplineComponent;
+
+    
     bool bPawnClicked = false;
     float StartClickTime = 0.0f;
 
