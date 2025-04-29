@@ -167,6 +167,11 @@ void AMobaTower::SpawnTowerShot()
 	}
 }
 
+UAbilitySystemComponent* AMobaTower::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 EGameTeam AMobaTower::GetTeamInterface_Implementation() const
 {
 	return TeamComponent->GetTeam();
@@ -176,11 +181,6 @@ float AMobaTower::GetAttributeTower(FGameplayAttribute AttributeType)
 {
 	bool Found;
 	return AbilitySystemComponent->GetGameplayAttributeValue(AttributeType, Found);
-}
-
-UAbilitySystemComponent* AMobaTower::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
 }
 
 void AMobaTower::ShowOutline_Implementation(bool EnableOutline)

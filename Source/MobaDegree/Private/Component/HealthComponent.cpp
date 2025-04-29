@@ -61,14 +61,11 @@ void UHealthComponent::HealthBarInitialization()
         UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Owner is not a Pawn!"));
         return;
     }
-    
-    // Próbujemy pobrać ASC z różnych źródeł, zależnie od typu aktora
+
     IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(OwnerPawn);
-    
-    // Jeśli nie znaleźliśmy ASC bezpośrednio, próbujemy z PlayerState (dla graczy)
+
     if (!AbilitySystemInterface)
     {
-        // Tylko dla postaci gracza (ma PlayerState)
         AMobaPlayerState* PS = Cast<AMobaPlayerState>(OwnerPawn->GetPlayerState());
         if (PS)
         {
@@ -95,20 +92,17 @@ void UHealthComponent::HealthBarInitialization()
         UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Could not find MobaAttributeSet on %s"), *OwnerPawn->GetName());
         return;
     }
-    
-    // Pobieramy początkowe wartości
+
     bool bFound = false;
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
-    
-    // Rejestrujemy delegaty na zmiany atrybutów
+
     HealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
         .AddUObject(this, &UHealthComponent::OnHealthWidgetChange);
     
     MaxHealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxHealthAttribute())
         .AddUObject(this, &UHealthComponent::OnMaxHealthWidgetChange);
-    
-    // Aktualizujemy UI od razu z aktualnymi wartościami
+
     UpdateHealthBar();
     
     UE_LOG(LogTemp, Warning, TEXT("HealthBarInitialization: Successfully initialized for %s. Health: %.2f/%.2f"), 
@@ -127,13 +121,11 @@ void UHealthComponent::RefreshHealthBar()
     {
         return;
     }
-    
-    // Pobieramy aktualne wartości
+
     bool bFound = false;
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
-    
-    // Aktualizujemy UI
+
     UpdateHealthBar();
 }
 

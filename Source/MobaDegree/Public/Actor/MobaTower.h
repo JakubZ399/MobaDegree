@@ -69,8 +69,6 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SpawnTowerShot();
 	
-	virtual EGameTeam GetTeamInterface_Implementation() const override;
-	
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UCapsuleComponent> CapsuleComponent;
@@ -120,4 +118,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetAttributeTower(FGameplayAttribute AttributeType);
+
+	virtual EGameTeam GetTeamInterface_Implementation() const override;
 };

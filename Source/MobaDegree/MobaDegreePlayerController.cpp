@@ -139,7 +139,7 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
-    /*FHitResult HitPawnResult;
+    FHitResult HitPawnResult;
     bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
 
     if (bHitSuccessfulHitPawn && PlayerCharacter)
@@ -163,7 +163,7 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
                 }
             }
         }
-    }*/
+    }
 
     FHitResult Hit;
     bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
@@ -186,8 +186,6 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
 
         if (PlayerCharacter)
         {
-            //PlayerCharacter->MoveToLocation(CachedDestination);
-
             if (FollowTime <= ShortPressThreshold)
             {
                 if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), CachedDestination))
@@ -198,7 +196,11 @@ void AMobaDegreePlayerController::OnSetDestinationReleased()
                         SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
                         DrawDebugSphere(GetWorld(), Locaction, 15.f, 8, FColor::Yellow, false, 5.f);
                     }
-                    CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+                    if (NavPath->PathPoints.Num() > 0)
+                    {
+                        CachedDestination = NavPath->PathPoints.Last();
+                    }
+
                     bAutoRunning = true;
                 }
             }
