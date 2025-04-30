@@ -13,6 +13,9 @@ class AMobaDegreeGameMode : public AGameMode
 
 public:
 	AMobaDegreeGameMode();
+
+	UFUNCTION(BlueprintCallable)
+	void ServerTravel(FString Map = "/Game/Blueprints/Levels/Map?listen");
 };
 
 

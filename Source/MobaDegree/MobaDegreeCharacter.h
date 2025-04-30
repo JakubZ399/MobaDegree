@@ -68,7 +68,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Setup|GAS")
 	TSubclassOf<UGameplayEffect> InitEffect;
 
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UMobaAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()

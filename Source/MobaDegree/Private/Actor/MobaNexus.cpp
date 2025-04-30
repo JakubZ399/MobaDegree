@@ -5,6 +5,7 @@
 
 AMobaNexus::AMobaNexus()
 {
+	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AMobaNexus::BeginPlay()

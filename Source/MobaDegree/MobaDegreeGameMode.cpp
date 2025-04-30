@@ -24,3 +24,11 @@ AMobaDegreeGameMode::AMobaDegreeGameMode()
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
 }
+
+void AMobaDegreeGameMode::ServerTravel(FString Map)
+{
+	if (GetWorld())
+	{
+		GetWorld()->ServerTravel(Map);
+	}
+}
