@@ -104,7 +104,7 @@ public:
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<UParticleSystem> DeathParticle;
 
-	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+	virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void CallOnAttackEndInterface_Implementation() override;

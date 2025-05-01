@@ -241,11 +241,13 @@ UBlackboardComponent* AMinionBase::GetBlackboardComponent()
 	return BlackboardComponent;
 }
 
-void AMinionBase::ShowOutline_Implementation(bool EnableOutline)
+void AMinionBase::ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor)
 {
-	IMobaInteraction::ShowOutline_Implementation(EnableOutline);
-
-	GetMesh()->SetRenderCustomDepth(EnableOutline);
+	if (GetMesh())
+	{
+		GetMesh()->SetRenderCustomDepth(EnableOutline);
+		GetMesh()->SetCustomDepthStencilValue(OutlineColor);
+	}
 }
 
 void AMinionBase::CallOnAttackEndInterface_Implementation()

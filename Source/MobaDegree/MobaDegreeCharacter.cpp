@@ -155,15 +155,17 @@ void AMobaDegreeCharacter::InitAbilityActorInfo()
 	}
 }
 
+//TODO::Check this to delete
 void AMobaDegreeCharacter::MoveToLocation(FVector Location)
 {
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), Location);
 }
 
-void AMobaDegreeCharacter::ShowOutline_Implementation(bool EnableOutline)
+void AMobaDegreeCharacter::ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor)
 {
 	if (GetMesh())
 	{
 		GetMesh()->SetRenderCustomDepth(EnableOutline);
+		GetMesh()->SetCustomDepthStencilValue(OutlineColor);
 	}
 }

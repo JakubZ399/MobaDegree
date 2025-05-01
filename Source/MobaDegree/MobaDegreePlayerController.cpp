@@ -48,28 +48,7 @@ void AMobaDegreePlayerController::AutoRun()
     }
 }
 
-void AMobaDegreePlayerController::TraceCursor()
-{
-    FHitResult HitPawnResult;
-    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
 
-    if (bHitSuccessfulHitPawn)
-    {
-        AActor* HitActor = HitPawnResult.GetActor();
-        
-        if (HitActor && HitActor != PlayerCharacter)
-        {
-            APawn* HitPawn = Cast<APawn>(HitActor);
-            if (HitPawn)
-            {
-                if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(HitActor))
-                {
-                    MobaInteraction->Execute_ShowOutline(HitActor, true);
-                }
-            }
-        }
-    }
-}
 
 void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 {
@@ -77,6 +56,153 @@ void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 
     AutoRun();
     TraceCursor();
+}
+
+void AMobaDegreePlayerController::TraceCursor()
+{
+    if (!PlayerCharacter) return;
+    
+    FHitResult HitPawnResult;
+    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
+    
+    if (bHitSuccessfulHitPawn)
+    {
+        if (HitPawnResult.GetActor() && (HitPawnResult.GetActor() != CursorHitActor && HitPawnResult.GetActor() != PlayerCharacter))
+        {
+            CursorHitActor = HitPawnResult.GetActor();
+            
+            if (CursorHitActor->IsA(APawn::StaticClass()))
+            {
+                if (CursorHitActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && CursorHitActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
+                {
+                    if (PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && PlayerCharacter->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
+                    {
+                        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, "Hit Pawn!");
+
+                        EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
+                        EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(CursorHitActor);
+
+                        if (PlayerTeam != TargetTeam)
+                        {
+                            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, "Hit Enemy Pawn!");
+                            IMobaInteraction::Execute_ShowOutline(CursorHitActor, true, 2);
+                            
+                            if (HighlightedActor)
+                            {
+                                IMobaInteraction::Execute_ShowOutline(HighlightedActor, false, 0);
+                            }
+                            HighlightedActor = HitPawnResult.GetActor();
+                        }
+                        /*else if (PlayerTeam == TargetTeam)
+                        {
+                            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Hit Friendly Pawn!");
+                            IMobaInteraction::Execute_ShowOutline(CursorHitActor, true, 3);
+                        }*/
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        GEngine->AddOnScreenDebugMessage(2, .5f, FColor::Red, "Empty Hit!");
+        if (IsValid(HighlightedActor))
+        {
+            IMobaInteraction::Execute_ShowOutline(HighlightedActor, false, 0);
+            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, "Outline Cleaning");
+            //HighlightedActor = nullptr;
+        }
+        //CursorHitActor = nullptr;
+    }
+}
+
+void AMobaDegreePlayerController::OnSetDestinationReleased()
+{
+    if (HighlightedActor)
+    {
+        bPawnClicked = true;
+        ProcessTargetSelection(HighlightedActor);
+        return;
+    }
+    
+    ClickToMove();
+}
+
+void AMobaDegreePlayerController::ClickToMove()
+{
+    FHitResult Hit;
+    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
+    
+    if (bHitSuccessful)
+    {
+        FollowTime += GetWorld()->GetDeltaSeconds();
+        CachedDestination = Hit.Location;
+
+        if (PlayerCharacter && PlayerCharacter->AttackTarget)
+        {
+            if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
+            {
+                MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false, 0);
+            }
+        }
+
+        Server_ClearTarget();
+        SpawnCursorFX(CachedDestination);
+
+        if (PlayerCharacter)
+        {
+            if (FollowTime <= ShortPressThreshold)
+            {
+                if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), CachedDestination))
+                {
+                    SplineComponent->ClearSplinePoints();
+                    for (const FVector& Locaction : NavPath->PathPoints)
+                    {
+                        SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
+                        DrawDebugSphere(GetWorld(), Locaction, 5.f, 8, FColor::Yellow, false, 5.f);
+                    }
+                    if (NavPath->PathPoints.Num() > 0)
+                    {
+                        CachedDestination = NavPath->PathPoints.Last();
+                    }
+
+                    bAutoRunning = true;
+                }
+            }
+            FollowTime = 0;
+            bTargeting = true;
+        }
+        else
+        {
+            PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+        }
+    }
+    
+    bPawnClicked = false;
+}
+
+void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
+{
+    if (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor)
+    {
+        return;
+    }
+
+    AActor* OldTarget = PlayerCharacter ? PlayerCharacter->AttackTarget : nullptr;
+    if (OldTarget)
+    {
+        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OldTarget))
+        {
+            MobaInteraction->Execute_ShowOutline(OldTarget, false, 0);
+        }
+    }
+    
+    if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(TargetActor))
+    {
+        MobaInteraction->Execute_ShowOutline(TargetActor, true, 1);
+    }
+
+    Server_SelectTarget(TargetActor);
 }
 
 void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
@@ -171,108 +297,6 @@ void AMobaDegreePlayerController::OnSetDestinationTriggered()
     //bPawnClicked = false;*/
 }
 
-void AMobaDegreePlayerController::OnSetDestinationReleased()
-{
-    FHitResult HitPawnResult;
-    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
-
-    if (bHitSuccessfulHitPawn && PlayerCharacter)
-    {
-        AActor* HitActor = HitPawnResult.GetActor();
-        
-        if (HitActor && HitActor != PlayerCharacter)
-        {
-            APawn* HitPawn = Cast<APawn>(HitActor);
-            if (HitPawn)
-            {
-                IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(HitPawn);
-                IMobaTeamInterface* PlayerTeamInterface = Cast<IMobaTeamInterface>(PlayerCharacter);
-                
-                if (TeamInterface && PlayerTeamInterface && 
-                    TeamInterface->Execute_GetTeamInterface(HitPawn) != PlayerTeamInterface->Execute_GetTeamInterface(PlayerCharacter))
-                {
-                    bPawnClicked = true;
-                    ProcessTargetSelection(HitActor);
-                    return;
-                }
-            }
-        }
-    }
-
-    FHitResult Hit;
-    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
-    
-    if (bHitSuccessful)
-    {
-        FollowTime += GetWorld()->GetDeltaSeconds();
-        CachedDestination = Hit.Location;
-
-        if (PlayerCharacter && PlayerCharacter->AttackTarget)
-        {
-            if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
-            {
-                MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false);
-            }
-        }
-
-        Server_ClearTarget();
-        SpawnCursorFX(CachedDestination);
-
-        if (PlayerCharacter)
-        {
-            if (FollowTime <= ShortPressThreshold)
-            {
-                if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), CachedDestination))
-                {
-                    SplineComponent->ClearSplinePoints();
-                    for (const FVector& Locaction : NavPath->PathPoints)
-                    {
-                        SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
-                        DrawDebugSphere(GetWorld(), Locaction, 5.f, 8, FColor::Yellow, false, 5.f);
-                    }
-                    if (NavPath->PathPoints.Num() > 0)
-                    {
-                        CachedDestination = NavPath->PathPoints.Last();
-                    }
-
-                    bAutoRunning = true;
-                }
-            }
-            FollowTime = 0;
-            bTargeting = true;
-        }
-        else
-        {
-            PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-        }
-    }
-    
-    bPawnClicked = false;
-}
-
-void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
-{
-    if (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor)
-    {
-        return;
-    }
-
-    AActor* OldTarget = PlayerCharacter ? PlayerCharacter->AttackTarget : nullptr;
-    if (OldTarget)
-    {
-        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OldTarget))
-        {
-            MobaInteraction->Execute_ShowOutline(OldTarget, false);
-        }
-    }
-    
-    if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(TargetActor))
-    {
-        MobaInteraction->Execute_ShowOutline(TargetActor, true);
-    }
-
-    Server_SelectTarget(TargetActor);
-}
 
 void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
 {
@@ -282,7 +306,7 @@ void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
     }
 }
 
-void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
+/*void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowOutline)
 {
     if (!OutlineActor || !IsLocalController())
     {
@@ -293,7 +317,7 @@ void AMobaDegreePlayerController::ChangeOutline(AActor* OutlineActor, bool ShowO
     {
         MobaInteraction->Execute_ShowOutline(OutlineActor, ShowOutline);
     }
-}
+}*/
 
 void AMobaDegreePlayerController::Server_SelectTarget_Implementation(AActor* Target)
 {

@@ -40,7 +40,7 @@ public:
 	UFUNCTION()
 	void MoveToLocation(FVector Location);
 
-	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+	virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
 
 protected:
 	virtual void BeginPlay() override;

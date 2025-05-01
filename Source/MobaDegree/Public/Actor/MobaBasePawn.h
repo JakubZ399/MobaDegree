@@ -25,7 +25,7 @@ public:
 	AMobaBasePawn();
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	virtual void ShowOutline_Implementation(bool EnableOutline) override;
+	virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
 
 protected:
 	virtual void BeginPlay() override;

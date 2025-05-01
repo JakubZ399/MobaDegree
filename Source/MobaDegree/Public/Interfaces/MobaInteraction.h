@@ -24,5 +24,5 @@ class MOBADEGREE_API IMobaInteraction
 public:
 
 	UFUNCTION(BlueprintCallable, BlueprintNativeEvent, Category = "MobaInteraction")
-	void ShowOutline(bool EnableOutline);
+	void ShowOutline(bool EnableOutline, int32 OutlineColor);
 };

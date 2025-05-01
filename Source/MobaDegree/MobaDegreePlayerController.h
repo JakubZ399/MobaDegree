@@ -28,7 +28,8 @@ public:
 
     void AutoRun();
     void TraceCursor();
-    
+    void ClickToMove();
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
 
@@ -38,8 +39,8 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputAction* SetDestinationClickAction;
 
-    UFUNCTION(BlueprintCallable)
-    void ChangeOutline(AActor* OutlineActor, bool ShowOutline);
+    /*UFUNCTION(BlueprintCallable)
+    void ChangeOutline(AActor* OutlineActor, bool ShowOutline);*/
 
     UFUNCTION(Client, Reliable)
     void Client_OnTargetChanged(AActor* OldTarget, AActor* NewTarget);
@@ -73,11 +74,16 @@ private:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<USplineComponent> SplineComponent;
-
     
     bool bPawnClicked = false;
     float StartClickTime = 0.0f;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
+
+    UPROPERTY()
+    TObjectPtr<AActor> CursorHitActor;
+
+    UPROPERTY()
+    TObjectPtr<AActor> HighlightedActor;
 };

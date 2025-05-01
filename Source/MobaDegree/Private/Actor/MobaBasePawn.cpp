@@ -67,9 +67,13 @@ void AMobaBasePawn::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& 
 	DOREPLIFETIME_CONDITION_NOTIFY(AMobaBasePawn, bAttributeInitialized, COND_None, REPNOTIFY_Always);
 }
 
-void AMobaBasePawn::ShowOutline_Implementation(bool EnableOutline)
+void AMobaBasePawn::ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor)
 {
-	MeshComponent->SetRenderCustomDepth(EnableOutline);
+	if (MeshComponent)
+	{
+		MeshComponent->SetRenderCustomDepth(EnableOutline);
+		MeshComponent->SetCustomDepthStencilValue(OutlineColor);
+	}
 }
 
 void AMobaBasePawn::BeginPlay()
