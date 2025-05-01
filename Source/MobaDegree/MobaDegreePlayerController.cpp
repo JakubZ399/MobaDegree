@@ -58,7 +58,15 @@ void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
+    
     PlayerCharacter = Cast<AMobaDegreeCharacter>(InPawn);
+}
+
+void AMobaDegreePlayerController::OnRep_Pawn()
+{
+    Super::OnRep_Pawn();
+
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
 }
 
 void AMobaDegreePlayerController::BeginPlay()

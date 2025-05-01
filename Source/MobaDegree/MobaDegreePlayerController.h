@@ -25,6 +25,8 @@ public:
     void AutoRun();
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnPossess(APawn* InPawn) override;
+
+    virtual void OnRep_Pawn() override;
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
