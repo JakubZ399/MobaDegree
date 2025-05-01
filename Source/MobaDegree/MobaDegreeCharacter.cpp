@@ -107,14 +107,24 @@ void AMobaDegreeCharacter::InitializeAttribute()
 {
 	if (!AbilitySystemComponent) return;
 	if (!InitEffect) return;
+	if (!HealthRegenEffect) return;
 	
 	FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
 	EffectContextHandle.AddSourceObject(this);
 
-	FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1, EffectContextHandle);
-	if (SpecHandle.IsValid())
+	FGameplayEffectSpecHandle InitSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(InitEffect, 1, EffectContextHandle);
+	if (InitSpecHandle.IsValid())
 	{
-		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*InitSpecHandle.Data.Get());
+	}
+
+	FGameplayEffectContextHandle RegenContextHandle = AbilitySystemComponent->MakeEffectContext();
+	RegenContextHandle.AddSourceObject(this);
+
+	FGameplayEffectSpecHandle RegenSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(HealthRegenEffect, 1, RegenContextHandle);
+	if (RegenSpecHandle.IsValid())
+	{
+		FActiveGameplayEffectHandle RegenGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*RegenSpecHandle.Data.Get());
 	}
 	
 	if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())

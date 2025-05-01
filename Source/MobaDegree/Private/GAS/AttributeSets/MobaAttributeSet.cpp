@@ -14,7 +14,6 @@ UMobaAttributeSet::UMobaAttributeSet()
 void UMobaAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
-
 }
 
 void UMobaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
@@ -23,7 +22,7 @@ void UMobaAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectMo
 	
 	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("Health Changed: %f, MaxHealth: %f"), Health.GetCurrentValue(), MaxHealth.GetCurrentValue());
+		SetHealth(FMath::Clamp(GetHealth(), 0.0f, GetMaxHealth()));
 	}
 }
 
