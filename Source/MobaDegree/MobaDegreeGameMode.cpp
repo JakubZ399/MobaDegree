@@ -3,6 +3,10 @@
 #include "MobaDegreeGameMode.h"
 #include "MobaDegreePlayerController.h"
 #include "MobaDegreeCharacter.h"
+#include "Component/TeamComponent.h"
+#include "GameFramework/PlayerStart.h"
+#include "Kismet/GameplayStatics.h"
+#include "Player/MobaPlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 AMobaDegreeGameMode::AMobaDegreeGameMode()

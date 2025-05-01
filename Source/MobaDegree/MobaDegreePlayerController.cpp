@@ -70,6 +70,8 @@ void AMobaDegreePlayerController::BeginPlay()
     bShowMouseCursor = true;
     FInputModeGameAndUI InputMode;
     SetInputMode(InputMode);
+
+    UE_LOG(LogTemp, Error, TEXT("PlayerController::BeginPlay"));
 }
 
 void AMobaDegreePlayerController::SetupInputComponent()
