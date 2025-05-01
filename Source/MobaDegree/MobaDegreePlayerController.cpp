@@ -48,11 +48,35 @@ void AMobaDegreePlayerController::AutoRun()
     }
 }
 
+void AMobaDegreePlayerController::TraceCursor()
+{
+    FHitResult HitPawnResult;
+    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
+
+    if (bHitSuccessfulHitPawn)
+    {
+        AActor* HitActor = HitPawnResult.GetActor();
+        
+        if (HitActor && HitActor != PlayerCharacter)
+        {
+            APawn* HitPawn = Cast<APawn>(HitActor);
+            if (HitPawn)
+            {
+                if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(HitActor))
+                {
+                    MobaInteraction->Execute_ShowOutline(HitActor, true);
+                }
+            }
+        }
+    }
+}
+
 void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 
     AutoRun();
+    TraceCursor();
 }
 
 void AMobaDegreePlayerController::OnPossess(APawn* InPawn)

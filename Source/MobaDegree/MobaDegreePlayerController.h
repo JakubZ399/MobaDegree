@@ -22,11 +22,12 @@ class AMobaDegreePlayerController : public APlayerController
 
 public:
     AMobaDegreePlayerController();
-    void AutoRun();
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnPossess(APawn* InPawn) override;
-
     virtual void OnRep_Pawn() override;
+
+    void AutoRun();
+    void TraceCursor();
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
