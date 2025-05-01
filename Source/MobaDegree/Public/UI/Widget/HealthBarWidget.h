@@ -7,6 +7,7 @@
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
 #include "Interfaces/UIInterface.h"
+#include "Team/EGameTeam.h"
 #include "HealthBarWidget.generated.h"
 
 /**
@@ -21,6 +22,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetBarValue_Implementation(float BarValue) override;
 
+	UFUNCTION(BlueprintCallable)
+	void SetBarColor(EGameTeam GameTeam);
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget="HealthProgressBar"))
 	TObjectPtr<UProgressBar> HealthProgressBar;
@@ -33,6 +37,16 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void SetupSizeBox(float Width, float Height);
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health Bar|Setup")
+	FLinearColor BlueTeamBarColor{FColor::Blue};
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health Bar|Setup")
+	FLinearColor RedTeamBarColor{FColor::Red};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health Bar|Setup")
+	FLinearColor NoneTeamBarColor{FColor::White};
+	
 public:
 	UFUNCTION(BlueprintCallable)
 	FORCEINLINE UProgressBar* GetHealthProgressBar() { return HealthProgressBar.Get(); }

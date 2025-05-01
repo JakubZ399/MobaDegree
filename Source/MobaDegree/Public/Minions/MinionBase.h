@@ -33,7 +33,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup|A_GAS")
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 

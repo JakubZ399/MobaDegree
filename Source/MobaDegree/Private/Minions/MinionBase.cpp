@@ -135,7 +135,12 @@ UAbilitySystemComponent* AMinionBase::GetAbilitySystemComponent() const
 
 EGameTeam AMinionBase::GetTeamInterface_Implementation() const
 {
-	return TeamComponent->GetTeam();
+	if (TeamComponent)
+	{
+		return TeamComponent->GetTeam();
+
+	}
+	return EGameTeam::None;
 }
 
 void AMinionBase::ChangeMesh_Implementation()
@@ -146,6 +151,11 @@ void AMinionBase::ChangeMesh_Implementation()
 	(int32)MinionTeam, HasAuthority() ? 1 : 0);
 	
 	if (!GetMesh()) return;
+
+	if (HealthComponent)
+	{
+		HealthComponent->SetHealthBarColor();
+	}
 	
 	switch (MinionTeam)
 	{

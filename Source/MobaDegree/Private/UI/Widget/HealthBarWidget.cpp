@@ -9,6 +9,44 @@ void UHealthBarWidget::SetBarValue_Implementation(float BarValue)
 	HealthProgressBar->SetPercent(BarValue);
 }
 
+void UHealthBarWidget::SetBarColor(EGameTeam GameTeam)
+{
+	FTimerHandle TimerHandle;
+	
+	switch (GameTeam)
+	{
+	case EGameTeam::Blue:
+		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Blue, "Bar Color BLUE");
+		HealthProgressBar->SetFillColorAndOpacity(BlueTeamBarColor);
+		
+		break;
+
+	case EGameTeam::Red:
+		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Red, "Bar Color RED");
+		HealthProgressBar->SetFillColorAndOpacity(RedTeamBarColor);
+		
+		break;
+
+	case EGameTeam::None:
+		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::White, "Bar Color NONE");
+		HealthProgressBar->SetFillColorAndOpacity(NoneTeamBarColor);
+		
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle,
+			[this, GameTeam]()
+			{
+				SetBarColor(GameTeam);
+			},
+			.5f,
+			false
+			);
+		break;
+
+	default:
+		GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Black, "Bar Color Default");
+		break;
+	}
+}
+
 void UHealthBarWidget::SetupProgressBar(ESlateBrushRoundingType::Type RoundingType, float Width)
 {
 	if (HealthProgressBar)

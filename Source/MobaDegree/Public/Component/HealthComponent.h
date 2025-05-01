@@ -29,6 +29,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void RefreshHealthBar();
 
+	UFUNCTION(BlueprintCallable)
+	void SetHealthBarColor();
+
 protected:
 	virtual void BeginPlay() override;
 

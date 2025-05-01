@@ -63,11 +63,7 @@ void UHealthComponent::SetHealthBarWidgetFromOwner(UWidgetComponent* Widget)
 void UHealthComponent::HealthBarInitialization()
 {
     OwnerPawn = Cast<APawn>(GetOwner());
-    if (!OwnerPawn)
-    {
-        UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Owner is not a Pawn!"));
-        return;
-    }
+    if (!OwnerPawn) return;
 
     IAbilitySystemInterface* AbilitySystemInterface = Cast<IAbilitySystemInterface>(OwnerPawn);
 
@@ -80,26 +76,14 @@ void UHealthComponent::HealthBarInitialization()
         }
     }
     
-    if (!AbilitySystemInterface)
-    {
-        UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Could not find AbilitySystemInterface on %s"), *OwnerPawn->GetName());
-        return;
-    }
+    if (!AbilitySystemInterface) return;
     
     OwnerAbilitySystemComponent = Cast<UAbilitySystemComponent>(AbilitySystemInterface->GetAbilitySystemComponent());
-    if (!OwnerAbilitySystemComponent)
-    {
-        UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Could not find AbilitySystemComponent on %s"), *OwnerPawn->GetName());
-        return;
-    }
+    if (!OwnerAbilitySystemComponent) return;
     
     const UMobaAttributeSet* AttributeSet = Cast<UMobaAttributeSet>(OwnerAbilitySystemComponent->GetAttributeSet(UMobaAttributeSet::StaticClass()));
-    if (!AttributeSet)
-    {
-        UE_LOG(LogTemp, Error, TEXT("HealthBarInitialization: Could not find MobaAttributeSet on %s"), *OwnerPawn->GetName());
-        return;
-    }
-
+    if (!AttributeSet) return;
+    
     bool bFound = false;
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
@@ -111,9 +95,6 @@ void UHealthComponent::HealthBarInitialization()
         .AddUObject(this, &UHealthComponent::OnMaxHealthWidgetChange);
 
     UpdateHealthBar();
-    
-    UE_LOG(LogTemp, Warning, TEXT("HealthBarInitialization: Successfully initialized for %s. Health: %.2f/%.2f"), 
-        *OwnerPawn->GetName(), Health, MaxHealth);
 }
 
 void UHealthComponent::RefreshHealthBar()
@@ -132,16 +113,22 @@ void UHealthComponent::RefreshHealthBar()
     bool bFound = false;
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
-
+    
     UpdateHealthBar();
+}
+
+void UHealthComponent::SetHealthBarColor()
+{
+    if (OwnerPawn && OwnerPawn->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
+    {
+        EGameTeam Team = IMobaTeamInterface::Execute_GetTeamInterface(OwnerPawn);
+        HealthBarWidget->SetBarColor(Team);
+    }
 }
 
 void UHealthComponent::OnHealthWidgetChange(const FOnAttributeChangeData& Data)
 {
     Health = Data.NewValue;
-    
-    UE_LOG(LogTemp, Warning, TEXT("Health changed from %.2f to %.2f (MaxHealth = %.2f) on %s"), 
-        Data.OldValue, Health, MaxHealth, OwnerPawn && OwnerPawn->HasAuthority() ? TEXT("Server") : TEXT("Client"));
     
     UpdateHealthBar();
 }
@@ -150,25 +137,16 @@ void UHealthComponent::OnMaxHealthWidgetChange(const FOnAttributeChangeData& Dat
 {
     MaxHealth = Data.NewValue;
     
-    UE_LOG(LogTemp, Warning, TEXT("MaxHealth changed from %.2f to %.2f on %s"), 
-        Data.OldValue, MaxHealth, OwnerPawn && OwnerPawn->HasAuthority() ? TEXT("Server") : TEXT("Client"));
-    
     UpdateHealthBar();
 }
 
 void UHealthComponent::UpdateHealthBar()
 {
-    if (!HealthBarWidget)
-    {
-        return;
-    }
+    if (!HealthBarWidget) return;
     
     if (MaxHealth > 0)
     {
         float HealthPercent = FMath::Clamp(Health / MaxHealth, 0.f, 1.f);
-        
-        UE_LOG(LogTemp, Warning, TEXT("UpdateHealthBar: Setting health percent to %.2f (%.2f/%.2f) on %s"), 
-            HealthPercent, Health, MaxHealth, OwnerPawn && OwnerPawn->HasAuthority() ? TEXT("Server") : TEXT("Client"));
         
         HealthBarWidget->GetHealthProgressBar()->SetPercent(HealthPercent);
     }

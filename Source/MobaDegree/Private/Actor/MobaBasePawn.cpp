@@ -90,6 +90,7 @@ void AMobaBasePawn::BeginPlay()
 	{
 		HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
 		HealthComponent->HealthBarInitialization();
+		HealthComponent->SetHealthBarColor();
 	}
 }
 
