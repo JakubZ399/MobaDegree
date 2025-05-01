@@ -30,10 +30,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	void OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
+	void OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
 	UFUNCTION()
-	void OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	void OnTargetExitedRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	UFUNCTION(BlueprintCallable)
 	void SpawnTowerShot();
@@ -52,9 +52,16 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Tower", meta = (AllowPrivateAccess = "true"))
 	bool bIsAttacking{ false };
-    
-	TArray<AActor*> PawnsArray;
 
+	UPROPERTY(VisibleAnywhere)
+	TArray<AActor*> TargetsInRange;
+
+	UFUNCTION()
+	void OnTargetDestroyed(AActor* DestroyedActor);
+
+	UFUNCTION()
+	void SelectNextTarget();
+	
 	bool bIsLoaded{false};
 
 
@@ -65,3 +72,4 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetAttributeTower(FGameplayAttribute AttributeType);
 };
+

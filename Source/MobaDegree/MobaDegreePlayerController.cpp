@@ -71,58 +71,68 @@ void AMobaDegreePlayerController::TraceCursor()
         CurrentHitActor = HitPawnResult.GetActor();
     }
 
-    if (CurrentHitActor != ValidHighlightedActor)
+    if (CurrentHitActor != HoveredActor)
     {
-        if (IsValid(ValidHighlightedActor) && ValidHighlightedActor != AttackTarget)
+        if (IsValid(HoveredActor) && HoveredActor != AttackTarget)
         {
-            IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, false, 0);
+            IMobaInteraction::Execute_ShowOutline(HoveredActor, false, 0);
         }
         
-        ValidHighlightedActor = CurrentHitActor;
+        HoveredActor = CurrentHitActor;
 
-        if (IsValid(ValidHighlightedActor) && ValidHighlightedActor != AttackTarget)
+        if (IsValid(HoveredActor) && HoveredActor != AttackTarget)
         {
-            if (ValidHighlightedActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && 
-                ValidHighlightedActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()) &&
+            if (HoveredActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && 
+                HoveredActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()) &&
                 PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && 
                 PlayerCharacter->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
             {
                 EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
-                EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(ValidHighlightedActor);
+                EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(HoveredActor);
                 
                 if (PlayerTeam == TargetTeam)
                 {
-                    IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, true, 3);
-                    EnemyCursorHitActor = nullptr;
+                    IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 3);
                 }
                 else
                 {
-                    IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, true, 2);
-                    EnemyCursorHitActor = ValidHighlightedActor;
+                    IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 2);
                 }
             }
         }
     }
 
-    HitActor = CurrentHitActor;
-
     if (!IsValid(CurrentHitActor))
     {
-        if (IsValid(ValidHighlightedActor) && ValidHighlightedActor != AttackTarget)
+        if (IsValid(HoveredActor) && HoveredActor != AttackTarget)
         {
-            IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, false, 0);
+            IMobaInteraction::Execute_ShowOutline(HoveredActor, false, 0);
         }
-        ValidHighlightedActor = nullptr;
-        EnemyCursorHitActor = nullptr;
+        HoveredActor = nullptr;
     }
+}
+
+bool AMobaDegreePlayerController::IsEnemyHovered()
+{
+    if (!IsValid(HoveredActor) || !IsValid(PlayerCharacter))
+        return false;
+        
+    if (!HoveredActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) ||
+        !PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
+        return false;
+        
+    EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
+    EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(HoveredActor);
+    
+    return PlayerTeam != TargetTeam;
 }
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
-    if (IsValid(EnemyCursorHitActor))
+    if (IsValid(HoveredActor) && IsEnemyHovered())
     {
         bPawnClicked = true;
-        ProcessTargetSelection(EnemyCursorHitActor);
+        ProcessTargetSelection(HoveredActor);
         return;
     }
     

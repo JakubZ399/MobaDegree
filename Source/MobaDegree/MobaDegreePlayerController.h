@@ -82,14 +82,10 @@ private:
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
 
     UPROPERTY()
-    TObjectPtr<AActor> HitActor;
-     
-    UPROPERTY()
-    TObjectPtr<AActor> EnemyCursorHitActor;
-
-    UPROPERTY()
-    TObjectPtr<AActor> ValidHighlightedActor;
+    TObjectPtr<AActor> HoveredActor;
 
     UPROPERTY()
     TObjectPtr<AActor> AttackTarget;
+    
+    bool IsEnemyHovered();
 };

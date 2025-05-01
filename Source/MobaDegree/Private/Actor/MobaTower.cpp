@@ -32,8 +32,8 @@ void AMobaTower::BeginPlay()
 {
 	Super::BeginPlay();
     
-	TowerRadius->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnAggroRangeBeginOverlap);
-	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnAggroRangeEndOverlap);
+	TowerRadius->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnTargetEnteredRange);
+	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnTargetExitedRange);
 
 	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
     
@@ -43,27 +43,66 @@ void AMobaTower::BeginPlay()
 	}
 }
 
-void AMobaTower::OnAggroRangeBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (!AttackComponent->GetAttackTarget() && Cast<APawn>(OtherActor) && !bIsAttacking)
+	if (OtherActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
 	{
-		if (IMobaTeamInterface* MobaTeamInterface = Cast<IMobaTeamInterface>(OtherActor))
-			if (MobaTeamInterface && MobaTeamInterface->Execute_GetTeamInterface(OtherActor) != TeamComponent->GetTeam())
+		EGameTeam ActorTeam = IMobaTeamInterface::Execute_GetTeamInterface(OtherActor);
+
+		if (ActorTeam != GetTeamInterface())
+		{
+			TargetsInRange.AddUnique(OtherActor);
+
+			OtherActor->OnDestroyed.AddDynamic(this, &AMobaTower::OnTargetDestroyed);
+
+			if (!AttackComponent->GetAttackTarget())
 			{
 				AttackComponent->SetAttackTarget(OtherActor);
 				bIsAttacking = true;
 				SpawnTowerShot();
 			}
+		}
 	}
 }
 
-void AMobaTower::OnAggroRangeEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+void AMobaTower::OnTargetExitedRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (AttackComponent->GetAttackTarget() && AttackComponent->GetAttackTarget() == OtherActor)
+	if (OtherActor)
+	{
+		TargetsInRange.Remove(OtherActor);
+		
+		OtherActor->OnDestroyed.RemoveDynamic(this, &AMobaTower::OnTargetDestroyed);
+		
+		if (OtherActor == AttackComponent->GetAttackTarget())
+		{
+			SelectNextTarget();
+		}
+	}
+}
+
+void AMobaTower::OnTargetDestroyed(AActor* DestroyedActor)
+{
+	TargetsInRange.Remove(DestroyedActor);
+
+	if (DestroyedActor == AttackComponent->GetAttackTarget())
+	{
+		SelectNextTarget();
+	}
+}
+
+void AMobaTower::SelectNextTarget()
+{
+	if (TargetsInRange.Num() > 0)
+	{
+		AttackComponent->SetAttackTarget(TargetsInRange[0]);
+		SpawnTowerShot();
+	}
+	else
 	{
 		AttackComponent->SetAttackTarget(nullptr);
+		//StopAttacking();
 	}
 }
 
