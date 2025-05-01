@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
+#include "Interfaces/MobaInteraction.h"
 #include "Interfaces/MobaTeamInterface.h"
 #include "MobaDegreeCharacter.generated.h"
 
@@ -19,7 +20,7 @@ class UMobaDefaultPlayerAttributeSet;
 class UTeamComponent;
 
 UCLASS(Blueprintable)
-class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface
+class AMobaDegreeCharacter : public ACharacter, public IAbilitySystemInterface, public IMobaTeamInterface, public IMobaInteraction
 {
 	GENERATED_BODY()
 
@@ -38,6 +39,8 @@ public:
 
 	UFUNCTION()
 	void MoveToLocation(FVector Location);
+
+	virtual void ShowOutline_Implementation(bool EnableOutline) override;
 
 protected:
 	virtual void BeginPlay() override;

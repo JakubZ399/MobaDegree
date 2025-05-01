@@ -123,6 +123,22 @@ void AMobaDegreeCharacter::InitializeAttribute()
 		HealthComponent->HealthBarInitialization();
 		HealthComponent->RefreshHealthBar();
 	}
+
+	if (!HealthBarWidget->GetWidget())
+	{
+		//Host have problem with GetWidget() initialization so this is solution for that
+		FTimerHandle TimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			if (HealthBarWidget->GetWidget())
+			{
+				HealthComponent->SetHealthBarWidgetFromOwner(HealthBarWidget);
+				HealthComponent->HealthBarInitialization();
+				HealthComponent->RefreshHealthBar();
+			}
+		}
+			, 0.1f, false);
+	}
 }
 
 void AMobaDegreeCharacter::InitAbilityActorInfo()
@@ -140,4 +156,12 @@ void AMobaDegreeCharacter::InitAbilityActorInfo()
 void AMobaDegreeCharacter::MoveToLocation(FVector Location)
 {
 	UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), Location);
+}
+
+void AMobaDegreeCharacter::ShowOutline_Implementation(bool EnableOutline)
+{
+	if (GetMesh())
+	{
+		GetMesh()->SetRenderCustomDepth(EnableOutline);
+	}
 }

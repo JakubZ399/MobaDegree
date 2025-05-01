@@ -20,17 +20,12 @@ class MOBADEGREE_API UHealthComponent : public UActorComponent
 public:    
 	UHealthComponent();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-
-	/**
-	 * Use this in owner's BeginPlay() to setup HealthBarWidget
-	 * @param Widget - HealthBarWidget
-	 */
+	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void SetHealthBarWidgetFromOwner(UWidgetComponent* Widget);
 
 	void HealthBarInitialization();
-    
-	// Refresh health bar manually (useful to call after attribute initialization)
+	
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void RefreshHealthBar();
 
@@ -52,8 +47,7 @@ private:
 
 	void OnHealthWidgetChange(const FOnAttributeChangeData& Data);
 	void OnMaxHealthWidgetChange(const FOnAttributeChangeData& Data);
-    
-	// Update the health bar visualization with current values
+	
 	void UpdateHealthBar();
 
 	float Health{0.f};

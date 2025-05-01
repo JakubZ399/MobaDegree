@@ -15,13 +15,21 @@ UHealthComponent::UHealthComponent()
 void UHealthComponent::BeginPlay()
 {
     Super::BeginPlay();
+
+    AActor* Owner = GetOwner();
+    if (Owner)
+    {
+        if (IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Owner))
+        {
+            EGameTeam OwnerTeam = TeamInterface->Execute_GetTeamInterface(Owner);
+        }
+    }
 }
 
 void UHealthComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     Super::EndPlay(EndPlayReason);
     
-    // Czyścimy delegaty przy zniszczeniu komponentu
     if (OwnerAbilitySystemComponent)
     {
         const UMobaAttributeSet* AttributeSet = Cast<UMobaAttributeSet>(OwnerAbilitySystemComponent->GetAttributeSet(UMobaAttributeSet::StaticClass()));
@@ -48,7 +56,6 @@ void UHealthComponent::SetHealthBarWidgetFromOwner(UWidgetComponent* Widget)
 
     if (HealthBarWidget)
     {
-        // Ustawiamy początkową wartość na 1.0 (100%)
         HealthBarWidget->GetHealthProgressBar()->SetPercent(1.f);
     }
 }
