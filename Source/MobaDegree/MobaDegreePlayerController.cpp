@@ -61,7 +61,7 @@ void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 void AMobaDegreePlayerController::TraceCursor()
 {
     if (!PlayerCharacter) return;
-    
+
     FHitResult HitPawnResult;
     bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_GameTraceChannel1, true, HitPawnResult);
     AActor* CurrentHitActor = nullptr;
@@ -89,16 +89,16 @@ void AMobaDegreePlayerController::TraceCursor()
             {
                 EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
                 EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(ValidHighlightedActor);
-
-                IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, true, 2);
                 
-                if (PlayerTeam != TargetTeam)
+                if (PlayerTeam == TargetTeam)
                 {
-                    EnemyCursorHitActor = ValidHighlightedActor;
+                    IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, true, 3);
+                    EnemyCursorHitActor = nullptr;
                 }
                 else
                 {
-                    EnemyCursorHitActor = nullptr;
+                    IMobaInteraction::Execute_ShowOutline(ValidHighlightedActor, true, 2);
+                    EnemyCursorHitActor = ValidHighlightedActor;
                 }
             }
         }
@@ -119,7 +119,7 @@ void AMobaDegreePlayerController::TraceCursor()
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
-    if (EnemyCursorHitActor)
+    if (IsValid(EnemyCursorHitActor))
     {
         bPawnClicked = true;
         ProcessTargetSelection(EnemyCursorHitActor);
