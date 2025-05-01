@@ -60,70 +60,65 @@ void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 
 void AMobaDegreePlayerController::TraceCursor()
 {
-    if (!PlayerCharacter) return;
-    
+    if (!PlayerCharacter)
+    {
+        return;
+    }
+
     FHitResult HitPawnResult;
-    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_Pawn, false, HitPawnResult);
-    
+    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_GameTraceChannel1, true, HitPawnResult);
+    AActor* HitActor = bHitSuccessfulHitPawn ? HitPawnResult.GetActor() : nullptr;
+
     if (bHitSuccessfulHitPawn)
     {
-        if (HitPawnResult.GetActor() && (HitPawnResult.GetActor() != CursorHitActor && HitPawnResult.GetActor() != PlayerCharacter))
+        GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Red, TEXT("bHitSuccessfulHitPawn"));
+    }
+    if (!bHitSuccessfulHitPawn)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Yellow, TEXT("!bHitSuccessfulHitPawn"));
+    }
+    
+    if (HitActor && HitActor != PlayerCharacter)
+    {
+        if (HitActor->IsA(APawn::StaticClass()))
         {
-            CursorHitActor = HitPawnResult.GetActor();
-            
-            if (CursorHitActor->IsA(APawn::StaticClass()))
+            if (HitActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && HitActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
             {
-                if (CursorHitActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && CursorHitActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
+                if (PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && PlayerCharacter->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
                 {
-                    if (PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && PlayerCharacter->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
+                    HighlightedActor = HitActor;
+                    
+                    EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
+                    EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(HitActor);
+
+                    IMobaInteraction::Execute_ShowOutline(HighlightedActor, true, 2);
+
+                    if (PlayerTeam != TargetTeam)
                     {
-                        GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Yellow, "Hit Pawn!");
-
-                        EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
-                        EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(CursorHitActor);
-
-                        if (PlayerTeam != TargetTeam)
-                        {
-                            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Red, "Hit Enemy Pawn!");
-                            IMobaInteraction::Execute_ShowOutline(CursorHitActor, true, 2);
-                            
-                            if (HighlightedActor)
-                            {
-                                IMobaInteraction::Execute_ShowOutline(HighlightedActor, false, 0);
-                            }
-                            HighlightedActor = HitPawnResult.GetActor();
-                        }
-                        /*else if (PlayerTeam == TargetTeam)
-                        {
-                            GEngine->AddOnScreenDebugMessage(-1, 2.f, FColor::Green, "Hit Friendly Pawn!");
-                            IMobaInteraction::Execute_ShowOutline(CursorHitActor, true, 3);
-                        }*/
+                        EnemyCursorHitActor = HitActor;
                     }
                 }
             }
         }
     }
-    else
+    else if (!HitActor && HighlightedActor)
     {
-        GEngine->AddOnScreenDebugMessage(2, .5f, FColor::Red, "Empty Hit!");
-        if (IsValid(HighlightedActor))
-        {
-            IMobaInteraction::Execute_ShowOutline(HighlightedActor, false, 0);
-            GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, "Outline Cleaning");
-            //HighlightedActor = nullptr;
-        }
-        //CursorHitActor = nullptr;
+        IMobaInteraction::Execute_ShowOutline(HighlightedActor, false, 0);
+        GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Black, TEXT("No Hit Actor"));
     }
 }
 
 void AMobaDegreePlayerController::OnSetDestinationReleased()
 {
-    if (HighlightedActor)
+    /*if (EnemyCursorHitActor)
     {
-        bPawnClicked = true;
-        ProcessTargetSelection(HighlightedActor);
+        GEngine->AddOnScreenDebugMessage(-1, .5f, FColor::Emerald, 
+    FString::Printf(TEXT("Enemy Target: %s"), *EnemyCursorHitActor->GetName()));
+        
+        /*bPawnClicked = true;
+        ProcessTargetSelection(HighlightedActor);#1#
         return;
-    }
+    }*/
     
     ClickToMove();
 }
