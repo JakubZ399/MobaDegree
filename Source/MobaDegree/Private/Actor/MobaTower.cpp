@@ -43,24 +43,33 @@ void AMobaTower::BeginPlay()
 	}
 }
 
-void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AMobaTower::StartAttackSequence()
 {
-	if (OtherActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
+	if (!bIsAttacking || !AttackComponent->GetAttackTarget())
+		return;
+        
+	SpawnTowerShot();
+}
+
+void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
+                                      UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!OtherActor || !OtherActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
+		return;
+
+	EGameTeam ActorTeam = IMobaTeamInterface::Execute_GetTeamInterface(OtherActor);
+	if (ActorTeam != TeamComponent->GetTeam())
 	{
-		EGameTeam ActorTeam = IMobaTeamInterface::Execute_GetTeamInterface(OtherActor);
-
-		if (ActorTeam != GetTeamInterface())
+		TargetsInRange.AddUnique(OtherActor);
+		OtherActor->OnDestroyed.AddDynamic(this, &AMobaTower::OnTargetDestroyed);
+		
+		if (!AttackComponent->GetAttackTarget())
 		{
-			TargetsInRange.AddUnique(OtherActor);
-
-			OtherActor->OnDestroyed.AddDynamic(this, &AMobaTower::OnTargetDestroyed);
-
-			if (!AttackComponent->GetAttackTarget())
+			AttackComponent->SetAttackTarget(OtherActor);
+			if (!bIsAttacking)
 			{
-				AttackComponent->SetAttackTarget(OtherActor);
 				bIsAttacking = true;
-				SpawnTowerShot();
+				StartAttackSequence();
 			}
 		}
 	}
@@ -97,35 +106,52 @@ void AMobaTower::SelectNextTarget()
 	if (TargetsInRange.Num() > 0)
 	{
 		AttackComponent->SetAttackTarget(TargetsInRange[0]);
-		SpawnTowerShot();
+		if (!bIsAttacking)
+		{
+			bIsAttacking = true;
+			StartAttackSequence();
+		}
 	}
 	else
 	{
 		AttackComponent->SetAttackTarget(nullptr);
-		//StopAttacking();
+		bIsAttacking = false;
 	}
 }
 
 void AMobaTower::SpawnTowerShot()
 {
-	if (GetWorld() && AttackComponent && AttackComponent->AttackTarget && TowerShotClass)
+	if (!GetWorld() || !AttackComponent || !AttackComponent->GetAttackTarget() || !TowerShotClass)
 	{
-		if (ATowerShot* TowerShot = GetWorld()->SpawnActor<ATowerShot>(TowerShotClass, GetProjectileSpawnerTransform()))
-		{
-			TowerShot->AttackTarget(AttackComponent->AttackTarget);
-			
-			FTimerHandle TimerHandle;
-			GetWorldTimerManager().SetTimer(
-				TimerHandle,
-				[this]()
-				{
-					bIsAttacking = false;
-					SpawnTowerShot();
-				},
-				2.f,
-				false
-			);
-		}
+		bIsAttacking = false;
+		return;
+	}
+
+	ATowerShot* TowerShot = GetWorld()->SpawnActor<ATowerShot>(TowerShotClass, GetProjectileSpawnerTransform());
+	if (TowerShot)
+	{
+		TowerShot->AttackTarget(AttackComponent->GetAttackTarget());
+
+		GetWorldTimerManager().SetTimer(
+			AttackTimerHandle,
+			this,
+			&AMobaTower::OnAttackTimerComplete,
+			TowerAttackTime,
+			false
+		);
+	}
+}
+
+void AMobaTower::OnAttackTimerComplete()
+{
+	if (AttackComponent && AttackComponent->GetAttackTarget())
+	{
+		SpawnTowerShot();
+	}
+	else
+	{
+		bIsAttacking = false;
+		SelectNextTarget();
 	}
 }
 

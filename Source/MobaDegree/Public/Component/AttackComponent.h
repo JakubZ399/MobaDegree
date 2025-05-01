@@ -22,8 +22,6 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-
-
 public:
 	FORCEINLINE void SetAttackTarget(AActor* Target) { AttackTarget = Target; };
 	FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; };

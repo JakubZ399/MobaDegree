@@ -29,6 +29,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
+	void StartAttackSequence();
+	
 	UFUNCTION()
 	void OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
 
@@ -64,6 +66,14 @@ private:
 	
 	bool bIsLoaded{false};
 
+	FTimerHandle AttackTimerHandle;
+
+	UFUNCTION()
+	void OnAttackTimerComplete();
+
+	UPROPERTY(EditDefaultsOnly)
+	float TowerAttackTime{3.f};
+
 
 public:
 	UFUNCTION(BlueprintCallable)
@@ -72,4 +82,5 @@ public:
 	UFUNCTION(BlueprintCallable)
 	float GetAttributeTower(FGameplayAttribute AttributeType);
 };
+
 

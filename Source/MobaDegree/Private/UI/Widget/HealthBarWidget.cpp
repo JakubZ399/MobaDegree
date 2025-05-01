@@ -26,14 +26,14 @@ void UHealthBarWidget::SetBarColor(EGameTeam GameTeam)
 	case EGameTeam::None:
 		HealthProgressBar->SetFillColorAndOpacity(NoneTeamBarColor);
 		
-		GetWorld()->GetTimerManager().SetTimer(TimerHandle,
+		/*GetWorld()->GetTimerManager().SetTimer(TimerHandle,
 			[this, GameTeam]()
 			{
 				SetBarColor(GameTeam);
 			},
-			.5f,
+			2.f,
 			false
-			);
+			);*/
 		break;
 		
 	default:
