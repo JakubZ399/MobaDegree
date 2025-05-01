@@ -122,7 +122,13 @@ void UHealthComponent::SetHealthBarColor()
     if (OwnerPawn && OwnerPawn->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
     {
         EGameTeam Team = IMobaTeamInterface::Execute_GetTeamInterface(OwnerPawn);
-        HealthBarWidget->SetBarColor(Team);
+
+        FTimerHandle TimerHandle;
+
+        if (HealthBarWidget)
+        {
+            HealthBarWidget->SetBarColor(Team);
+        }
     }
 }
 

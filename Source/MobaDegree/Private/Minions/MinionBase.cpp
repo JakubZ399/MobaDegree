@@ -152,9 +152,18 @@ void AMinionBase::ChangeMesh_Implementation()
 	
 	if (!GetMesh()) return;
 
-	if (HealthComponent)
+	/*if (HealthComponent)
 	{
 		HealthComponent->SetHealthBarColor();
+	}*/
+
+	if (HealthComponent)
+	{
+		FTimerHandle ColorTimer;
+		GetWorld()->GetTimerManager().SetTimer(ColorTimer, [this]()
+		{
+			HealthComponent->SetHealthBarColor();
+		}, 0.1f, false);
 	}
 	
 	switch (MinionTeam)
