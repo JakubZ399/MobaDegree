@@ -3,8 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Actor/MobaTower.h"
 #include "GameFramework/Pawn.h"
 #include "Interfaces/MobaTeamInterface.h"
+#include "MobaDegree/MobaDegreeCharacter.h"
 #include "Team/EGameTeam.h"
 #include "MinionsGroupPawn.generated.h"
 
@@ -45,13 +47,16 @@ public:
 	TObjectPtr<UFloatingPawnMovement> MovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
-	TObjectPtr<UPawnSensingComponent> PawnSensingComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TArray<USceneComponent*> SpawnPoints;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	TObjectPtr<APawn> AttackTarget;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
+	TArray<AActor*> TargetsInRange;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
+	bool bInCombat{false};
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	TArray<AMinionBase*> SpawnedMinions;
@@ -79,20 +84,27 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void OnMinionDeath(AActor* DeadMinion);
+
+	UFUNCTION(BlueprintCallable)
 	bool SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn);
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnGroupDeath OnGroupDeath;
-
-	UFUNCTION(BlueprintCallable)
-	void OnGroupDeathCallback();
-
-	UFUNCTION()
-	void OnEnemyDestroyed(AActor* DestroyedActor);
-
-	UFUNCTION(BlueprintCallable)
-	void OnSeePawn(APawn* Pawn);
 	
+	UFUNCTION(BlueprintCallable) void OnGroupDeathCallback();
+	
+	UFUNCTION(BlueprintCallable) void OnEnemyDestroyed(AActor* DestroyedActor);
+	
+	UFUNCTION(BlueprintCallable) void BindTowerEnemy(AMobaTower* Tower);
+	UFUNCTION(BlueprintCallable) void UnBindTowerEnemy(AMobaTower* Tower);
+	
+	UFUNCTION(BlueprintCallable) void BindGroupEnemy(AMinionsGroupPawn* OtherGroup);
+	UFUNCTION(BlueprintCallable) void UnBindGroupEnemy(AMinionsGroupPawn* OtherGroup);
+	
+	UFUNCTION(BlueprintCallable) void BindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer);
+	UFUNCTION(BlueprintCallable) void UnBindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer);
+
+
 #pragma region MinionsSpawnPoints
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
@@ -120,6 +132,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	void FindActorsInRange();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
@@ -135,9 +148,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
 	FName InCombatKey{"InCombat"};
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
-	bool bInCombat{false};
 
 public:
 	UFUNCTION(BlueprintCallable)

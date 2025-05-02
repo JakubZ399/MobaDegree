@@ -7,6 +7,7 @@
 #include "Component/AttackComponent.h"
 #include "Components/SphereComponent.h"
 #include "Component/TeamComponent.h"
+#include "Minions/MinionsGroupPawn.h"
 
 
 AMobaTower::AMobaTower()
@@ -56,6 +57,8 @@ void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, 
 {
 	if (!OtherActor || !OtherActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
 		return;
+
+	if (Cast<AMinionsGroupPawn>(OtherActor)) return;
 
 	EGameTeam ActorTeam = IMobaTeamInterface::Execute_GetTeamInterface(OtherActor);
 	if (ActorTeam != TeamComponent->GetTeam())

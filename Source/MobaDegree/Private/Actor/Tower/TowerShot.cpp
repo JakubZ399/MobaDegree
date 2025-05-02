@@ -97,7 +97,7 @@ void ATowerShot::SphereOverlap(UPrimitiveComponent* OverlappedComponent, AActor*
 			{
 				FGameplayEffectSpecHandle SpecHandle = TargetASC->MakeOutgoingSpec(TowerShotEffect, 1, TargetASC->MakeEffectContext());
 				TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-				SetLifeSpan(0.2f);
+				Destroy();
 			}
 
 		}

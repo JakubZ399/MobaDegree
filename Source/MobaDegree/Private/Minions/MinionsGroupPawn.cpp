@@ -9,6 +9,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Minions/MinionBase.h"
 #include "MobaDegree/MobaDegreeCharacter.h"
 #include "Perception/PawnSensingComponent.h"
@@ -22,10 +23,6 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	
 	MovementComponent = CreateDefaultSubobject<UFloatingPawnMovement>(TEXT("MovementComponent"));
 	MovementComponent->MaxSpeed = 300.f;
-	
-	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnSensingComponent"));
-	PawnSensingComponent->SightRadius = 1000.f;
-	PawnSensingComponent->SetPeripheralVisionAngle(60.f);
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
 	SphereComponent->SetupAttachment(RootComponent);
@@ -62,13 +59,47 @@ void AMinionsGroupPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
-	PawnSensingComponent->OnSeePawn.AddDynamic(this, &AMinionsGroupPawn::OnSeePawn);
-
-	PawnSensingComponent->SensingInterval = 0.25f;
-	PawnSensingComponent->bOnlySensePlayers = false;
-	PawnSensingComponent->bSeePawns = true;
-
 	AttackTarget = nullptr;
+
+	FTimerHandle FindActorTimerHandle;
+
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(FindActorTimerHandle, this, &ThisClass::FindActorsInRange, 1.f, true);
+	}
+}
+
+void AMinionsGroupPawn::FindActorsInRange()
+{
+	/*TargetsInRange.Empty();
+	
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_GameTraceChannel1));
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	ActorsToIgnore.Append(SpawnedMinions);
+	TArray<AActor*> OutActors;
+	
+	bool bSuccess = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 800.f, ObjectTypes, nullptr, ActorsToIgnore, OutActors);
+
+	if (bSuccess)
+	{
+		EGameTeam GroupTeam = IMobaTeamInterface::Execute_GetTeamInterface(this);
+
+		for (AActor* Actor : OutActors)
+		{
+			if (Actor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()))
+			{
+				EGameTeam ActorTeam = IMobaTeamInterface::Execute_GetTeamInterface(Actor);
+
+				bool bIsEnemy = (ActorTeam != GroupTeam);
+				if (bIsEnemy)
+				{
+					TargetsInRange.Add(Actor);
+				}
+			}
+		}
+	}*/
 }
 
 void AMinionsGroupPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -173,43 +204,34 @@ bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn
 	return false;
 }
 
-void AMinionsGroupPawn::OnSeePawn(APawn* Pawn)
+void AMinionsGroupPawn::BindTowerEnemy(AMobaTower* Tower)
 {
-	IMobaTeamInterface* TeamInterface = Cast<IMobaTeamInterface>(Pawn);
-	if (TeamInterface && TeamInterface->Execute_GetTeamInterface(Pawn) != Team && !bInCombat)
-	{
-		//TODO::Agressive Enemy :: Prio.
-		
-		// Tower
-		if (AMobaTower* Tower = Cast<AMobaTower>(Pawn))
-		{
-			SetupDetectedEnemy(bDetectTower, Pawn);
+	Tower->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+}
 
-			Tower->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+void AMinionsGroupPawn::BindGroupEnemy(AMinionsGroupPawn* OtherGroup)
+{
+	OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
+}
 
-			return;
-		}
+void AMinionsGroupPawn::BindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer)
+{
+	EnemyPlayer->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+}
 
-		// Minions - other group
-		if (AMinionsGroupPawn* OtherGroup = Cast<AMinionsGroupPawn>(Pawn))
-		{
-			SetupDetectedEnemy(bDetectMinion, Pawn);
+void AMinionsGroupPawn::UnBindTowerEnemy(AMobaTower* Tower)
+{
+	Tower->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+}
 
-			OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
-			
-			return;
-		}
+void AMinionsGroupPawn::UnBindGroupEnemy(AMinionsGroupPawn* OtherGroup)
+{
+	OtherGroup->OnGroupDeath.RemoveDynamic(this, &ThisClass::OnGroupDeathCallback);
+}
 
-		//Enemy character
-		if (AMobaDegreeCharacter* EnemyCharacter = Cast<AMobaDegreeCharacter>(Pawn))
-		{
-			SetupDetectedEnemy(bDetectPlayers, Pawn);
-
-			//TODO:: Callback to character
-			
-			return;
-		}
-	}
+void AMinionsGroupPawn::UnBindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer)
+{
+	EnemyPlayer->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
 }
 
 void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
@@ -238,7 +260,6 @@ void AMinionsGroupPawn::OnGroupDeathCallback()
 			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
 		}
 	}
-	
 	
 	OnAttackTargetSet.Broadcast(nullptr);
 }
