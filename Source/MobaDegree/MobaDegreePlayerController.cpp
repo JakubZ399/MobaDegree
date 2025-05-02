@@ -170,7 +170,7 @@ void AMobaDegreePlayerController::ClickToMove()
                     for (const FVector& Locaction : NavPath->PathPoints)
                     {
                         SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
-                        DrawDebugSphere(GetWorld(), Locaction, 5.f, 8, FColor::Yellow, false, 5.f);
+                        //DrawDebugSphere(GetWorld(), Locaction, 5.f, 8, FColor::Yellow, false, 5.f);
                     }
                     if (NavPath->PathPoints.Num() > 0)
                     {

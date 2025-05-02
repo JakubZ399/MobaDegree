@@ -63,6 +63,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, MovementSpeed)
 
 private:
+	bool bIsInitialized{false};
 
 	UFUNCTION(BlueprintCallable)
 	void OnRep_Health(const FGameplayAttributeData& OldHealth);
