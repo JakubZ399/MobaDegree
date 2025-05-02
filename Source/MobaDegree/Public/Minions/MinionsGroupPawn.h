@@ -39,6 +39,9 @@ public:
 	TObjectPtr<AActor> EnemyLaneTarget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
+	TObjectPtr<USphereComponent> SphereComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<UFloatingPawnMovement> MovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Setup")

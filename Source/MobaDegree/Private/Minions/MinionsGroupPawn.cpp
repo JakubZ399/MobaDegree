@@ -27,6 +27,9 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	PawnSensingComponent->SightRadius = 1000.f;
 	PawnSensingComponent->SetPeripheralVisionAngle(60.f);
 
+	SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+	SphereComponent->SetupAttachment(RootComponent);
+
 #pragma region MinionsSpawnPoints
 	SpawnPointMinionMelee = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionMeele"));
 	SpawnPointMinionMelee->SetupAttachment(SpawnPointsMinion);
