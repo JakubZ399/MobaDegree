@@ -116,6 +116,14 @@ void AMobaDegreeCharacter::InitializeAttribute()
 	if (InitSpecHandle.IsValid())
 	{
 		FActiveGameplayEffectHandle ActiveGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*InitSpecHandle.Data.Get());
+
+		bool MovementFound = false;
+		float MovementSpeed = AbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMovementSpeedAttribute(), MovementFound);
+
+		if (MovementFound)
+		{
+			GetCharacterMovement()->MaxWalkSpeed = MovementSpeed;
+		}
 	}
 
 	FGameplayEffectContextHandle RegenContextHandle = AbilitySystemComponent->MakeEffectContext();
