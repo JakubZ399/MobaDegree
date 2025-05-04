@@ -1,21 +1,16 @@
 // 2025 Jakub Żurawik. All Rights Reserved.
 
 #include "Minions/MinionsGroupPawn.h"
-
 #include "AIController.h"
-#include "GroomVisualizationData.h"
 #include "Actor/MobaTower.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "Chaos/PBDSuspensionConstraintData.h"
 #include "Component/TeamComponent.h"
 #include "Components/SphereComponent.h"
 #include "Engine/OverlapResult.h"
 #include "GameFramework/FloatingPawnMovement.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Minions/MinionBase.h"
 #include "MobaDegree/MobaDegreeCharacter.h"
-#include "Perception/PawnSensingComponent.h"
 
 AMinionsGroupPawn::AMinionsGroupPawn()
 {

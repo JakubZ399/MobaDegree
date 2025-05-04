@@ -3,9 +3,13 @@
 #include "Component/HealthComponent.h"
 
 #include "AbilitySystemInterface.h"
+#include "Components/TextBlock.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"
+#include "MobaDegree/MobaDegreePlayerController.h"
 #include "Player/MobaPlayerState.h"
 #include "UI/Widget/HealthBarWidget.h"
+#include "UI/Widget/MobaMainUserWidget.h"
+#include "UI/Widget/PlayerStatBarWidget.h"
 
 UHealthComponent::UHealthComponent()
 {
@@ -88,6 +92,11 @@ void UHealthComponent::HealthBarInitialization()
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
 
+    if (AMobaDegreePlayerController* PlayerController = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
+    {
+        PlayerController->MainUserWidget->HealthBar->SetTextStatMaxValue(MaxHealth);
+    }
+    
     HealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
         .AddUObject(this, &UHealthComponent::OnHealthWidgetChange);
     
@@ -135,6 +144,11 @@ void UHealthComponent::SetHealthBarColor()
 void UHealthComponent::OnHealthWidgetChange(const FOnAttributeChangeData& Data)
 {
     Health = Data.NewValue;
+
+    if (AMobaDegreePlayerController* PC = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
+    {
+        PC->MainUserWidget->HealthBar->SetTextStatValue(Health);
+    }
     
     UpdateHealthBar();
 }
@@ -142,7 +156,6 @@ void UHealthComponent::OnHealthWidgetChange(const FOnAttributeChangeData& Data)
 void UHealthComponent::OnMaxHealthWidgetChange(const FOnAttributeChangeData& Data)
 {
     MaxHealth = Data.NewValue;
-    
     UpdateHealthBar();
 }
 

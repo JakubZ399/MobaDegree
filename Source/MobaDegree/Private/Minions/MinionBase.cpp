@@ -6,7 +6,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
-#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/AttributeSets/MobaAttributeSet.h"

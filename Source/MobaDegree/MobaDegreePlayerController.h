@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MobaDegreePlayerController.generated.h"
 
+class UMobaMainUserWidget;
 class USplineComponent;
 class UNiagaraSystem;
 class UInputMappingContext;
@@ -26,6 +27,15 @@ public:
     virtual void OnPossess(APawn* InPawn) override;
     virtual void OnRep_Pawn() override;
 
+    UFUNCTION(Client, Reliable)
+    void CreateMainWidget();
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    TObjectPtr<UMobaMainUserWidget> MainUserWidget;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    TSubclassOf<UMobaMainUserWidget> MainUserWidgetClass;
+
     void AutoRun();
     void TraceCursor();
     void ClickToMove();
@@ -39,9 +49,6 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
     UInputAction* SetDestinationClickAction;
 
-    /*UFUNCTION(BlueprintCallable)
-    void ChangeOutline(AActor* OutlineActor, bool ShowOutline);*/
-
     UFUNCTION(Client, Reliable)
     void Client_OnTargetChanged(AActor* OldTarget, AActor* NewTarget);
 
@@ -50,7 +57,6 @@ protected:
     virtual void BeginPlay() override;
 
     void OnInputStarted();
-    void OnSetDestinationTriggered();
     void OnSetDestinationReleased();
 
     void SpawnCursorFX(const FVector& Location);
@@ -88,4 +94,6 @@ private:
     TObjectPtr<AActor> AttackTarget;
     
     bool IsEnemyHovered();
+
+
 };

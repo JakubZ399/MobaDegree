@@ -6,7 +6,6 @@
 #include "Actor/MobaTower.h"
 #include "GameFramework/Pawn.h"
 #include "Interfaces/MobaTeamInterface.h"
-#include "MobaDegree/MobaDegreeCharacter.h"
 #include "Team/EGameTeam.h"
 #include "MinionsGroupPawn.generated.h"
 
