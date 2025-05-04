@@ -91,11 +91,6 @@ void UHealthComponent::HealthBarInitialization()
     bool bFound = false;
     Health = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetHealthAttribute(), bFound);
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
-
-    if (AMobaDegreePlayerController* PlayerController = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
-    {
-        PlayerController->MainUserWidget->HealthBar->SetTextStatMaxValue(MaxHealth);
-    }
     
     HealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
         .AddUObject(this, &UHealthComponent::OnHealthWidgetChange);
@@ -144,12 +139,6 @@ void UHealthComponent::SetHealthBarColor()
 void UHealthComponent::OnHealthWidgetChange(const FOnAttributeChangeData& Data)
 {
     Health = Data.NewValue;
-
-    if (AMobaDegreePlayerController* PC = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
-    {
-        PC->MainUserWidget->HealthBar->SetTextStatValue(Health);
-    }
-    
     UpdateHealthBar();
 }
 
@@ -168,5 +157,17 @@ void UHealthComponent::UpdateHealthBar()
         float HealthPercent = FMath::Clamp(Health / MaxHealth, 0.f, 1.f);
         
         HealthBarWidget->GetHealthProgressBar()->SetPercent(HealthPercent);
+
+        if (AMobaDegreePlayerController* PlayerController = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
+        {
+            if (PlayerController->MainUserWidget)
+            {
+                if (PlayerController->MainUserWidget->HealthBar)
+                {
+                    PlayerController->MainUserWidget->HealthBar->SetTextStatValue(Health);
+                    PlayerController->MainUserWidget->HealthBar->SetTextStatMaxValue(MaxHealth);
+                }
+            }
+        }
     }
 }

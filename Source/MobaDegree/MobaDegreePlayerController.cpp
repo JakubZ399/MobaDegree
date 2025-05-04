@@ -288,7 +288,7 @@ void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
 {
     if (FXCursor && IsLocalController())
     {
-        UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, Location, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, Location, FRotator::ZeroRotator, FVector(1.2f, 1.2f, 1.2f), true, true, ENCPoolMethod::None, true);
     }
 }
 
