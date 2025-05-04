@@ -26,16 +26,38 @@ class MOBADEGREE_API AMinionsGroupPawn : public APawn, public IMobaTeamInterface
 
 public:
 	AMinionsGroupPawn();
-	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	void SetAttackTargetBlackboard(AActor* Target, FName Key);
+
+#pragma region Combat
+
+	UFUNCTION()
+	TArray<AActor*> FindActorsInRange();
+	
+	UFUNCTION()
+	void FindValidAttackTarget();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
+	TArray<AActor*> TargetsInRange;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
+	bool bInCombat{false};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
+	float ScanTime{0.5f};
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
+	float ScanRadius{700.f};
+
+	FTimerHandle FindActorTimerHandle;
+	
+#pragma endregion
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
 	FOnAttackTargetSet OnAttackTargetSet;
 
 	UFUNCTION(BlueprintCallable)
 	void Initialize();
-
+	
 	//To setup
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<AActor> EnemyLaneTarget;
@@ -51,12 +73,6 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	TObjectPtr<APawn> AttackTarget;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
-	TArray<AActor*> TargetsInRange;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
-	bool bInCombat{false};
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	TArray<AMinionBase*> SpawnedMinions;
@@ -64,6 +80,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Setup")
 	EGameTeam Team{EGameTeam::None};
 
+#pragma region Debug;
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
 	bool bDebugRespawnMelee{true};
 
@@ -78,6 +95,7 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
 	bool bDetectPlayers{true};
+#pragma	endregion
 
 	UFUNCTION(BlueprintCallable)
 	void MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, USceneComponent* SpawnPointSceneComponent);
@@ -92,7 +110,6 @@ public:
 	FOnGroupDeath OnGroupDeath;
 	
 	UFUNCTION(BlueprintCallable) void OnGroupDeathCallback();
-	
 	UFUNCTION(BlueprintCallable) void OnEnemyDestroyed(AActor* DestroyedActor);
 	
 	UFUNCTION(BlueprintCallable) void BindTowerEnemy(AMobaTower* Tower);
@@ -132,7 +149,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	void FindActorsInRange();
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
