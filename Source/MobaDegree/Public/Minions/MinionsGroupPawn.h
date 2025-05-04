@@ -114,6 +114,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
 	bool bDetectPlayers{true};
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup|Debug")
+	bool bDebugMode{false};
 #pragma	endregion
 
 	UFUNCTION(BlueprintCallable)

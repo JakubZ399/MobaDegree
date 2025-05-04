@@ -170,7 +170,10 @@ void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority
 		if (Target->IsA(AMobaTower::StaticClass()))
 		{
 			SetupDetectedEnemy(bDetectTower, Target);
-			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+			if (bDebugMode)
+			{
+				DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+			}
 		}
 		break;
             
@@ -179,15 +182,21 @@ void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority
 		{
 			AMinionBase* ClosestMinion = FindClosestMinionFromGroup(Target);
 			SetupDetectedEnemy(bDetectMinion, ClosestMinion);
-			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+			if (bDebugMode)
+			{
+				DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+			}
 		}
 		break;
             
 	case ETargetTypePriority::Player:
 		if (Target->IsA(AMobaDegreeCharacter::StaticClass()))
 		{
+			if (bDebugMode)
+			{
+				DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+			}
 			SetupDetectedEnemy(bDetectPlayers, Target);
-			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
 		}
 		break;
             
@@ -274,12 +283,19 @@ TArray<AActor*> AMinionsGroupPawn::FindActorsInRange()
 				}
 			}
 		}
-		DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Green, false, ScanTime);
+		
+		if (bDebugMode)
+		{
+			DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Green, false, ScanTime);
+		}
 		return FoundActors;
 	}
 	else
 	{
-		DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Yellow, false, ScanTime);
+		if (bDebugMode)
+		{
+			DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Yellow, false, ScanTime);
+		}
 	}
 
 	return FoundActors;
