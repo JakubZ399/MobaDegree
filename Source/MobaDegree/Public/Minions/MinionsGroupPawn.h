@@ -10,6 +10,16 @@
 #include "Team/EGameTeam.h"
 #include "MinionsGroupPawn.generated.h"
 
+UENUM(BlueprintType)
+enum class ETargetTypePriority : uint8
+{
+	None = 0,
+	Player = 1,
+	MinionGroup = 2,
+	Tower = 3,
+	AggressivePlayer = 4
+};
+
 class USphereComponent;
 enum class EGameTeam : uint8;
 class UPawnSensingComponent;
@@ -17,7 +27,6 @@ class UFloatingPawnMovement;
 class AMinionBase;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackTargetSet, AActor*, AttackTarget);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGroupDeath);
 
 UCLASS()
 class MOBADEGREE_API AMinionsGroupPawn : public APawn, public IMobaTeamInterface
@@ -49,6 +58,16 @@ public:
 	float ScanRadius{700.f};
 
 	FTimerHandle FindActorTimerHandle;
+	
+	TMap<ETargetTypePriority, TArray<AActor*>> CategorizedTargets;
+
+	void SelectTargetByPriority();
+
+	void HandleSelectedTarget(AActor* Target, ETargetTypePriority Priority);
+
+	AActor* FindClosestTarget(const TArray<AActor*>& Targets);
+
+	AMinionBase* FindClosestMinionFromGroup(AActor* EnemyGroup);
 	
 #pragma endregion
 
@@ -104,22 +123,12 @@ public:
 	void OnMinionDeath(AActor* DeadMinion);
 
 	UFUNCTION(BlueprintCallable)
-	bool SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn);
-
-	UPROPERTY(BlueprintAssignable, Category = "Combat")
-	FOnGroupDeath OnGroupDeath;
+	bool SetupDetectedEnemy(bool bEnemyBoolDetection, AActor* Actor);
 	
-	UFUNCTION(BlueprintCallable) void OnGroupDeathCallback();
 	UFUNCTION(BlueprintCallable) void OnEnemyDestroyed(AActor* DestroyedActor);
 	
-	UFUNCTION(BlueprintCallable) void BindTowerEnemy(AMobaTower* Tower);
-	UFUNCTION(BlueprintCallable) void UnBindTowerEnemy(AMobaTower* Tower);
-	
-	UFUNCTION(BlueprintCallable) void BindGroupEnemy(AMinionsGroupPawn* OtherGroup);
-	UFUNCTION(BlueprintCallable) void UnBindGroupEnemy(AMinionsGroupPawn* OtherGroup);
-	
-	UFUNCTION(BlueprintCallable) void BindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer);
-	UFUNCTION(BlueprintCallable) void UnBindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer);
+	UFUNCTION(BlueprintCallable) void BindEnemyDestroy(AActor* ActorToBind);
+	UFUNCTION(BlueprintCallable) void UnBindBindEnemyDestroy(AActor* ActorToUnBind);
 
 
 #pragma region MinionsSpawnPoints
@@ -149,7 +158,6 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 private:
 

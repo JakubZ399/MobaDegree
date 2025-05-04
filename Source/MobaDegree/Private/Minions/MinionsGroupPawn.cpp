@@ -3,8 +3,10 @@
 #include "Minions/MinionsGroupPawn.h"
 
 #include "AIController.h"
+#include "GroomVisualizationData.h"
 #include "Actor/MobaTower.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Chaos/PBDSuspensionConstraintData.h"
 #include "Component/TeamComponent.h"
 #include "Components/SphereComponent.h"
 #include "Engine/OverlapResult.h"
@@ -69,38 +71,173 @@ void AMinionsGroupPawn::BeginPlay()
 
 void AMinionsGroupPawn::FindValidAttackTarget()
 {
-	if (bInCombat) return;
+	if (AttackTarget)
+	{
+		if (AttackTarget->IsA(AMobaDegreeCharacter::StaticClass()))
+		{
+			TArray<AActor*> CurrentTargets = FindActorsInRange();
+			if (!CurrentTargets.Contains(AttackTarget))
+			{
+				UnBindBindEnemyDestroy(AttackTarget);
+				OnEnemyDestroyed(nullptr);
+				AttackTarget = nullptr;
+			}
+			else
+			{
+				return;
+			}
+		}
+		else
+		{
+			return;
+		}
+	}
 	
 	TargetsInRange = FindActorsInRange();
+
+	if (SpawnedMinions.Num() == 0)
+	{
+		Destroy();
+	}
+	
 	if (TargetsInRange.Num() > 0)
 	{
+		CategorizedTargets.Empty();
+		
 		for (AActor* TargetActor : TargetsInRange)
 		{
-			//Tower
+			ETargetTypePriority Priority = ETargetTypePriority::None;
+			
 			if (TargetActor->IsA(AMobaTower::StaticClass()))
 			{
-				AMobaTower* TargetMobaTower = Cast<AMobaTower>(TargetActor);
-				SetupDetectedEnemy(bDetectTower, TargetMobaTower);
-				BindTowerEnemy(TargetMobaTower);
-				return;
+				Priority = ETargetTypePriority::Tower;
 			}
-			//Minion Group
-			if (AMinionsGroupPawn* TargetGroup = Cast<AMinionsGroupPawn>(TargetActor))
+			else if (AMinionsGroupPawn* TargetGroup = Cast<AMinionsGroupPawn>(TargetActor))
 			{
-				SetupDetectedEnemy(bDetectMinion, TargetGroup);
-				BindGroupEnemy(TargetGroup);
-				return;
+				Priority = ETargetTypePriority::MinionGroup;
 			}
-			//Player
-			if (TargetActor->IsA(AMobaDegreeCharacter::StaticClass()))
+			else if (TargetActor->IsA(AMobaDegreeCharacter::StaticClass()))
 			{
-				AMobaDegreeCharacter* TargetCharacter = Cast<AMobaDegreeCharacter>(TargetActor);
-				SetupDetectedEnemy(bDetectPlayers, TargetCharacter);
-				BindPlayerEnemy(TargetCharacter);
+				Priority = ETargetTypePriority::Player;
+			}
+
+			if (Priority != ETargetTypePriority::None)
+			{
+				if (!CategorizedTargets.Contains(Priority))
+				{
+					CategorizedTargets.Add(Priority, TArray<AActor*>());
+				}
+				CategorizedTargets[Priority].Add(TargetActor);
+			}
+		}
+		SelectTargetByPriority();
+	}
+	else if (TargetsInRange.Num() == 0)
+	{
+		OnEnemyDestroyed(nullptr);
+	}
+}
+
+void AMinionsGroupPawn::SelectTargetByPriority()
+{
+	TArray<ETargetTypePriority> PriorityOrder = {
+	ETargetTypePriority::Tower,
+	ETargetTypePriority::MinionGroup,
+	ETargetTypePriority::Player,
+	};
+
+	for (ETargetTypePriority Priority : PriorityOrder)
+	{
+		if (CategorizedTargets.Contains(Priority))
+		{
+			TArray<AActor*>& Targets = CategorizedTargets[Priority];
+			if (Targets.Num() > 0)
+			{
+				AActor* SelectedTarget = FindClosestTarget(Targets);
+				
+				HandleSelectedTarget(SelectedTarget, Priority);
 				return;
 			}
 		}
 	}
+}
+
+void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority Priority)
+{
+	switch (Priority)
+	{
+	case ETargetTypePriority::Tower:
+		if (Target->IsA(AMobaTower::StaticClass()))
+		{
+			SetupDetectedEnemy(bDetectTower, Target);
+			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+		}
+		break;
+            
+	case ETargetTypePriority::MinionGroup:
+		if (Target->IsA(AMinionsGroupPawn::StaticClass()))
+		{
+			AMinionBase* ClosestMinion = FindClosestMinionFromGroup(Target);
+			SetupDetectedEnemy(bDetectMinion, ClosestMinion);
+			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+		}
+		break;
+            
+	case ETargetTypePriority::Player:
+		if (Target->IsA(AMobaDegreeCharacter::StaticClass()))
+		{
+			SetupDetectedEnemy(bDetectPlayers, Target);
+			DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+		}
+		break;
+            
+	default:
+		break;
+	}
+}
+
+AMinionBase* AMinionsGroupPawn::FindClosestMinionFromGroup(AActor* EnemyGroup)
+{
+	AMinionsGroupPawn* Group = Cast<AMinionsGroupPawn>(EnemyGroup);
+	
+	if (!Group || Group->SpawnedMinions.Num() == 0)
+		return nullptr;
+    
+	AMinionBase* ClosestMinion = nullptr;
+	float MinDistance = FLT_MAX;
+    
+	for (AMinionBase* Minion : Group->SpawnedMinions)
+	{
+		if (Minion && !Minion->IsPendingKillPending())
+		{
+			float Distance = GetDistanceTo(Minion);
+			if (Distance < MinDistance)
+			{
+				MinDistance = Distance;
+				ClosestMinion = Minion;
+			}
+		}
+	}
+    
+	return ClosestMinion;
+}
+
+AActor* AMinionsGroupPawn::FindClosestTarget(const TArray<AActor*>& Targets)
+{
+	AActor* ClosestTarget = nullptr;
+	float MinDistance = FLT_MAX;
+    
+	for (AActor* Target : Targets)
+	{
+		float Distance = GetDistanceTo(Target);
+		if (Distance < MinDistance)
+		{
+			MinDistance = Distance;
+			ClosestTarget = Target;
+		}
+	}
+    
+	return ClosestTarget;
 }
 
 TArray<AActor*> AMinionsGroupPawn::FindActorsInRange()
@@ -115,7 +252,7 @@ TArray<AActor*> AMinionsGroupPawn::FindActorsInRange()
 	QueryParams.AddIgnoredActors(ActorsToIgnore);
 	
 	TArray<FOverlapResult> OverlapResults;
-	bool bSuccess = GetWorld()->OverlapMultiByChannel(OverlapResults, GetActorLocation(), FQuat::Identity, ECC_Pawn, SphereShape, QueryParams);
+	bool bSuccess = GetWorld()->OverlapMultiByChannel(OverlapResults, GetActorLocation(), FQuat::Identity, ECC_GameTraceChannel1, SphereShape, QueryParams);
 	
 	if (bSuccess)
 	{
@@ -137,8 +274,8 @@ TArray<AActor*> AMinionsGroupPawn::FindActorsInRange()
 				}
 			}
 		}
-		
 		DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Green, false, ScanTime);
+		return FoundActors;
 	}
 	else
 	{
@@ -206,9 +343,7 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 	}
 }
 
-
-
-bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn)
+bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, AActor* Actor)
 {
 	if (!bEnemyBoolDetection) {return true;}
 	bInCombat = true; 
@@ -218,6 +353,9 @@ bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn
 		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
 		{
 			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
+			AttackTarget = Cast<APawn>(Actor);
+			CallOnAttackTargetSet();
+			BindEnemyDestroy(Actor);
 		}
 	}
 	return false;
@@ -225,22 +363,13 @@ bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, APawn* Pawn
 
 void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
 {
-	bInCombat = false;
-
-	if (AAIController* AIController = GetController<AAIController>())
+	if (DestroyedActor)
 	{
-		if (UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent())
-		{
-			BlackboardComponent->SetValueAsBool(InCombatKey, bInCombat);
-		}
+		UnBindBindEnemyDestroy(DestroyedActor);
 	}
 	
-	OnAttackTargetSet.Broadcast(nullptr);
-}
-
-void AMinionsGroupPawn::OnGroupDeathCallback()
-{
 	bInCombat = false;
+	AttackTarget = nullptr;
 
 	if (AAIController* AIController = GetController<AAIController>())
 	{
@@ -268,44 +397,20 @@ void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 	}
 }
 
-void AMinionsGroupPawn::EndPlay(const EEndPlayReason::Type EndPlayReason)
+void AMinionsGroupPawn::BindEnemyDestroy(AActor* ActorToBind)
 {
-	Super::EndPlay(EndPlayReason);
+	if (ActorToBind && !ActorToBind->IsPendingKillPending())
+	{
+		ActorToBind->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+	}
+}
 
-	OnGroupDeath.Broadcast();
+void AMinionsGroupPawn::UnBindBindEnemyDestroy(AActor* ActorToUnBind)
+{
+	ActorToUnBind->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
 }
 
 EGameTeam AMinionsGroupPawn::GetTeamInterface_Implementation() const
 {
 	return Team;
-}
-
-void AMinionsGroupPawn::BindTowerEnemy(AMobaTower* Tower)
-{
-	Tower->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
-}
-
-void AMinionsGroupPawn::BindGroupEnemy(AMinionsGroupPawn* OtherGroup)
-{
-	OtherGroup->OnGroupDeath.AddDynamic(this, &ThisClass::OnGroupDeathCallback);
-}
-
-void AMinionsGroupPawn::BindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer)
-{
-	EnemyPlayer->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
-}
-
-void AMinionsGroupPawn::UnBindTowerEnemy(AMobaTower* Tower)
-{
-	Tower->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
-}
-
-void AMinionsGroupPawn::UnBindGroupEnemy(AMinionsGroupPawn* OtherGroup)
-{
-	OtherGroup->OnGroupDeath.RemoveDynamic(this, &ThisClass::OnGroupDeathCallback);
-}
-
-void AMinionsGroupPawn::UnBindPlayerEnemy(AMobaDegreeCharacter* EnemyPlayer)
-{
-	EnemyPlayer->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
 }
