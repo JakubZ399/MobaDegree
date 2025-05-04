@@ -278,7 +278,10 @@ TArray<AActor*> AMinionsGroupPawn::FindActorsInRange()
 					if (bIsEnemy)
 					{
 						FoundActors.Add(TargetActor);
-						DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Red, false, ScanTime);
+						if (bDebugMode)
+						{
+							DrawDebugSphere(GetWorld(), GetActorLocation(), ScanRadius, 16, FColor::Red, false, ScanTime);
+						}
 					}
 				}
 			}
