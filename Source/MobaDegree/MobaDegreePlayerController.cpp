@@ -24,34 +24,59 @@ AMobaDegreePlayerController::AMobaDegreePlayerController()
     bReplicates = true;
     bShowMouseCursor = true;
     DefaultMouseCursor = EMouseCursor::Default;
-    CachedDestination = FVector::ZeroVector;
 
     SplineComponent = CreateDefaultSubobject<USplineComponent>("Spline Component");
 }
 
-void AMobaDegreePlayerController::AutoRun()
+void AMobaDegreePlayerController::BeginPlay()
 {
-    if (!bAutoRunning) return;
-    if (PlayerCharacter)
-    {
-        const FVector LocationOnSpline = SplineComponent->FindLocationClosestToWorldLocation(PlayerCharacter->GetActorLocation(), ESplineCoordinateSpace::World);
-        const FVector Direction = SplineComponent->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
-        PlayerCharacter->AddMovementInput(Direction);
+    Super::BeginPlay();
 
-        const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
-        if (DistanceToDestination <= AutoRunAcceptanceRadius)
-        {
-            bAutoRunning = false;
-        }
-    }
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+
+    bShowMouseCursor = true;
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    SetInputMode(InputMode);
+
+    SplineComponent->ClearSplinePoints();
+
+    CreateMainWidget();
+}
+
+void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
+{
+    Super::OnPossess(InPawn);
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(InPawn);
+}
+
+void AMobaDegreePlayerController::OnRep_Pawn()
+{
+    Super::OnRep_Pawn();
+    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
 }
 
 void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-
-    AutoRun();
+    
+    HandleMovement();
     TraceCursor();
+}
+
+void AMobaDegreePlayerController::HandleMovement()
+{
+    if (!PlayerCharacter) return;
+    
+    if (PlayerCharacter->AttackTarget)
+    {
+        return;
+    }
+    
+    if (SplineComponent->GetNumberOfSplinePoints() > 0)
+    {
+        AutoRun();
+    }
 }
 
 void AMobaDegreePlayerController::TraceCursor()
@@ -76,24 +101,15 @@ void AMobaDegreePlayerController::TraceCursor()
         
         HoveredActor = CurrentHitActor;
 
-        if (IsValid(HoveredActor) && HoveredActor != AttackTarget)
+        if (IsValid(HoveredActor) && HoveredActor != AttackTarget && HoveredActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
         {
-            if (HoveredActor->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && 
-                HoveredActor->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()) &&
-                PlayerCharacter->GetClass()->ImplementsInterface(UMobaTeamInterface::StaticClass()) && 
-                PlayerCharacter->GetClass()->ImplementsInterface(UMobaInteraction::StaticClass()))
+            if (IsEnemyHovered())
             {
-                EGameTeam PlayerTeam = IMobaTeamInterface::Execute_GetTeamInterface(PlayerCharacter);
-                EGameTeam TargetTeam = IMobaTeamInterface::Execute_GetTeamInterface(HoveredActor);
-                
-                if (PlayerTeam == TargetTeam)
-                {
-                    IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 3);
-                }
-                else
-                {
-                    IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 2);
-                }
+                IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 2);
+            }
+            else
+            {
+                IMobaInteraction::Execute_ShowOutline(HoveredActor, true, 3);
             }
         }
     }
@@ -123,72 +139,64 @@ bool AMobaDegreePlayerController::IsEnemyHovered()
     return PlayerTeam != TargetTeam;
 }
 
-void AMobaDegreePlayerController::OnSetDestinationReleased()
+void AMobaDegreePlayerController::AutoRun()
 {
-    if (IsValid(HoveredActor) && IsEnemyHovered())
-    {
-        bPawnClicked = true;
-        ProcessTargetSelection(HoveredActor);
-        return;
-    }
+    if (!PlayerCharacter || SplineComponent->GetNumberOfSplinePoints() == 0) return;
     
-    ClickToMove();
+    const FVector ActorLocation = PlayerCharacter->GetActorLocation();
+    const FVector LocationOnSpline = SplineComponent->FindLocationClosestToWorldLocation(ActorLocation, ESplineCoordinateSpace::World);
+    const FVector Direction = SplineComponent->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
+    
+    PlayerCharacter->AddMovementInput(Direction);
+
+    const FVector LastPoint = SplineComponent->GetLocationAtSplinePoint(SplineComponent->GetNumberOfSplinePoints() - 1, ESplineCoordinateSpace::World);
+    const float DistanceToDestination = (LocationOnSpline - LastPoint).Length();
+    
+    if (DistanceToDestination <= AutoRunAcceptanceRadius)
+    {
+        SplineComponent->ClearSplinePoints();
+    }
 }
 
-void AMobaDegreePlayerController::ClickToMove()
+void AMobaDegreePlayerController::OnInputStarted()
 {
+    bShowMouseCursor = true;  
+    FInputModeGameAndUI InputMode;
+    InputMode.SetHideCursorDuringCapture(false);
+    SetInputMode(InputMode);
+}
+
+void AMobaDegreePlayerController::OnSetDestinationReleased()
+{
+    ProcessInput();
+}
+
+void AMobaDegreePlayerController::ProcessInput()
+{
+    if (!PlayerCharacter) return;
+
+    float CurrentTime = GetWorld()->GetTimeSeconds();
+    if (IsValid(HoveredActor) && CurrentTime - LastTargetChangeTime < TargetDebounceTime)
+    {
+        return;
+    }
+
+    if (IsValid(HoveredActor) && IsEnemyHovered())
+    {
+        PerformTargetSelection(HoveredActor);
+        return;
+    }
+
     FHitResult Hit;
     bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
     
     if (bHitSuccessful)
     {
-        FollowTime += GetWorld()->GetDeltaSeconds();
-        CachedDestination = Hit.Location;
-
-        if (PlayerCharacter && PlayerCharacter->AttackTarget)
-        {
-            if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
-            {
-                MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false, 0);
-            }
-        }
-
-        Server_ClearTarget();
-        SpawnCursorFX(CachedDestination);
-
-        if (PlayerCharacter)
-        {
-            if (FollowTime <= ShortPressThreshold)
-            {
-                if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), CachedDestination))
-                {
-                    SplineComponent->ClearSplinePoints();
-                    for (const FVector& Locaction : NavPath->PathPoints)
-                    {
-                        SplineComponent->AddSplinePoint(Locaction, ESplineCoordinateSpace::World);
-                        //DrawDebugSphere(GetWorld(), Locaction, 5.f, 8, FColor::Yellow, false, 5.f);
-                    }
-                    if (NavPath->PathPoints.Num() > 0)
-                    {
-                        CachedDestination = NavPath->PathPoints.Last();
-                    }
-
-                    bAutoRunning = true;
-                }
-            }
-            FollowTime = 0;
-            bTargeting = true;
-        }
-        else
-        {
-            PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-        }
+        PerformMovementToLocation(Hit.Location);
     }
-    
-    bPawnClicked = false;
 }
 
-void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
+void AMobaDegreePlayerController::PerformTargetSelection(AActor* TargetActor)
 {
     if (!TargetActor || (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor))
     {
@@ -196,16 +204,16 @@ void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
     }
 
     AttackTarget = TargetActor;
-    
-    AActor* OldTarget = PlayerCharacter ? PlayerCharacter->AttackTarget : nullptr;
-    if (OldTarget)
+    LastTargetChangeTime = GetWorld()->GetTimeSeconds();
+
+    if (PlayerCharacter && PlayerCharacter->AttackTarget)
     {
-        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(OldTarget))
+        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(PlayerCharacter->AttackTarget))
         {
-            MobaInteraction->Execute_ShowOutline(OldTarget, false, 0);
+            MobaInteraction->Execute_ShowOutline(PlayerCharacter->AttackTarget, false, 0);
         }
     }
-    
+
     if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(TargetActor))
     {
         MobaInteraction->Execute_ShowOutline(TargetActor, true, 1);
@@ -214,42 +222,26 @@ void AMobaDegreePlayerController::ProcessTargetSelection(AActor* TargetActor)
     Server_SelectTarget(TargetActor);
 }
 
-void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
+void AMobaDegreePlayerController::PerformMovementToLocation(const FVector& Location)
 {
-    Super::OnPossess(InPawn);
-    
-    PlayerCharacter = Cast<AMobaDegreeCharacter>(InPawn);
-}
+    if (!PlayerCharacter) return;
 
-void AMobaDegreePlayerController::OnRep_Pawn()
-{
-    Super::OnRep_Pawn();
-
-    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-}
-
-void AMobaDegreePlayerController::CreateMainWidget_Implementation()
-{
-    if (MainUserWidgetClass)
+    if (PlayerCharacter->AttackTarget)
     {
-        MainUserWidget = CreateWidget<UMobaMainUserWidget>(this, MainUserWidgetClass);
-        MainUserWidget->AddToViewport();
+        Server_ClearTarget();
     }
-}
+    
+    SpawnCursorFX(Location);
+    Server_MoveToLocation(Location);
 
-void AMobaDegreePlayerController::BeginPlay()
-{
-    Super::BeginPlay();
-
-    PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-
-    bShowMouseCursor = true;
-    FInputModeGameAndUI InputMode;
-    SetInputMode(InputMode);
-
-    CreateMainWidget();
-
-    UE_LOG(LogTemp, Error, TEXT("PlayerController::BeginPlay"));
+    if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, PlayerCharacter->GetActorLocation(), Location))
+    {
+        SplineComponent->ClearSplinePoints();
+        for (const FVector& PathPoint : NavPath->PathPoints)
+        {
+            SplineComponent->AddSplinePoint(PathPoint, ESplineCoordinateSpace::World);
+        }
+    }
 }
 
 void AMobaDegreePlayerController::SetupInputComponent()
@@ -267,21 +259,6 @@ void AMobaDegreePlayerController::SetupInputComponent()
         EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
         EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
     }
-    else
-    {
-        UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component! This template is built to use the Enhanced Input system."), *GetNameSafe(this));
-    }
-}
-
-void AMobaDegreePlayerController::OnInputStarted()
-{
-    StartClickTime = GetWorld()->GetTimeSeconds();
-
-    bShowMouseCursor = true;  
-    FInputModeGameAndUI InputMode;
-    InputMode.SetHideCursorDuringCapture(false);
-    SetInputMode(InputMode);
-    //StopMovement();
 }
 
 void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
@@ -294,57 +271,37 @@ void AMobaDegreePlayerController::SpawnCursorFX(const FVector& Location)
 
 void AMobaDegreePlayerController::Server_SelectTarget_Implementation(AActor* Target)
 {
-    AMobaDegreeCharacter* TargetCharacter = nullptr;
+    if (!IsValid(PlayerCharacter) || !IsValid(Target)) return;
     
-    if (PlayerCharacter)
-    {
-        TargetCharacter = PlayerCharacter;
-    }
-    else
-    {
-        TargetCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
-    }
-    
-    if (!IsValid(TargetCharacter) || !IsValid(Target)) 
-    {
-        return;
-    }
-    
-    AActor* OldTarget = TargetCharacter->AttackTarget;
-    TargetCharacter->OldAttackTarget = OldTarget;
-    TargetCharacter->AttackTarget = Target;
-
-    PlayerCharacter = TargetCharacter;
-
-    Client_OnTargetChanged(OldTarget, Target);
+    PlayerCharacter->AttackTarget = Target;
+    Client_OnTargetChanged(nullptr, Target);
 }
 
 void AMobaDegreePlayerController::Client_OnTargetChanged_Implementation(AActor* OldTarget, AActor* NewTarget)
 {
-    if (!IsLocalController())
-    {
-        return;
-    }
-
-    if (PlayerCharacter)
-    {
-        PlayerCharacter->AttackTarget = NewTarget;
-    }
+    if (!IsLocalController() || !PlayerCharacter) return;
+    
+    PlayerCharacter->AttackTarget = NewTarget;
 }
 
 void AMobaDegreePlayerController::Server_ClearTarget_Implementation()
 {
-    if (!IsValid(PlayerCharacter)) 
-    {
-        return;
-    }
+    if (!IsValid(PlayerCharacter)) return;
     
-    AActor* OldTarget = PlayerCharacter->AttackTarget;
-    if (OldTarget)
-    {
-        PlayerCharacter->OldAttackTarget = OldTarget;
-        PlayerCharacter->AttackTarget = nullptr;
+    PlayerCharacter->AttackTarget = nullptr;
+    Client_OnTargetChanged(nullptr, nullptr);
+}
 
-        Client_OnTargetChanged(OldTarget, nullptr);
+void AMobaDegreePlayerController::Server_MoveToLocation_Implementation(const FVector& Location)
+{
+    if (!IsValid(PlayerCharacter)) return;
+}
+
+void AMobaDegreePlayerController::CreateMainWidget_Implementation()
+{
+    if (MainUserWidgetClass)
+    {
+        MainUserWidget = CreateWidget<UMobaMainUserWidget>(this, MainUserWidgetClass);
+        MainUserWidget->AddToViewport();
     }
 }

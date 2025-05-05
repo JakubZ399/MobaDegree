@@ -119,6 +119,7 @@ void AMobaDegreeCharacter::InitializeAttribute()
 
 		bool MovementFound = false;
 		float MovementSpeed = AbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMovementSpeedAttribute(), MovementFound);
+		AbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetAttackRangeAttribute(), MovementFound);
 
 		if (MovementFound)
 		{

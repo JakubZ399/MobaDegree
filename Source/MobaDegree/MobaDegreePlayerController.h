@@ -36,17 +36,13 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
     TSubclassOf<UMobaMainUserWidget> MainUserWidgetClass;
 
-    void AutoRun();
-    void TraceCursor();
-    void ClickToMove();
-
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
     UNiagaraSystem* FXCursor;
 
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
     UInputMappingContext* DefaultMappingContext;
     
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
     UInputAction* SetDestinationClickAction;
 
     UFUNCTION(Client, Reliable)
@@ -60,30 +56,20 @@ protected:
     void OnSetDestinationReleased();
 
     void SpawnCursorFX(const FVector& Location);
-    void ProcessTargetSelection(AActor* TargetActor);
     
     UFUNCTION(Server, Reliable)
     void Server_SelectTarget(AActor* Target);
     
     UFUNCTION(Server, Reliable)
     void Server_ClearTarget();
+    
+    UFUNCTION(Server, Reliable)
+    void Server_MoveToLocation(const FVector& Location);
 
 private:
-    FVector CachedDestination = FVector::ZeroVector;
-    float FollowTime = 0;
-    float ShortPressThreshold = 0.5f;
-    bool bAutoRunning = false;
-    bool bTargeting = false;
-
-    UPROPERTY(EditDefaultsOnly)
-    float AutoRunAcceptanceRadius = 50.f;
-
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<USplineComponent> SplineComponent;
     
-    bool bPawnClicked = false;
-    float StartClickTime = 0.0f;
-
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
 
@@ -93,7 +79,20 @@ private:
     UPROPERTY()
     TObjectPtr<AActor> AttackTarget;
     
+    UPROPERTY()
+    float LastTargetChangeTime = 0.0f;
+    
+    UPROPERTY(EditAnywhere, Category = "Targeting")
+    float TargetDebounceTime = 0.1f;
+    
+    UPROPERTY(EditDefaultsOnly)
+    float AutoRunAcceptanceRadius = 50.f;
+    
     bool IsEnemyHovered();
-
-
+    void HandleMovement();
+    void AutoRun();
+    void TraceCursor();
+    void ProcessInput();
+    void PerformMovementToLocation(const FVector& Location);
+    void PerformTargetSelection(AActor* TargetActor);
 };
