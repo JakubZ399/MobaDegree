@@ -91,7 +91,11 @@ void AMobaDegreeCharacter::Tick(float DeltaSeconds)
 
 void AMobaDegreeCharacter::HandleCombat(float DeltaTime)
 {
-    if (!AttackTarget) return;
+    if (!AttackTarget || !IsValidAttackTarget(AttackTarget))
+    {
+        ClearAttackTarget();
+        return;
+    }
     
     UpdateCombatState();
     
@@ -111,9 +115,10 @@ void AMobaDegreeCharacter::HandleCombat(float DeltaTime)
 
 void AMobaDegreeCharacter::UpdateCombatState()
 {
-    if (!AttackTarget)
+    if (!AttackTarget || !IsValidAttackTarget(AttackTarget))
     {
         Server_SetCombatState(ECharacterCombatState::Idle);
+        ClearAttackTarget();
         return;
     }
     
@@ -139,7 +144,7 @@ void AMobaDegreeCharacter::Server_SetCombatState_Implementation(ECharacterCombat
 
 void AMobaDegreeCharacter::MoveToTarget()
 {
-    if (!AttackTarget) return;
+    if (!AttackTarget || !IsValidAttackTarget(AttackTarget)) return;
     
     FVector Direction = (AttackTarget->GetActorLocation() - GetActorLocation()).GetSafeNormal();
     AddMovementInput(Direction);
@@ -147,7 +152,7 @@ void AMobaDegreeCharacter::MoveToTarget()
 
 void AMobaDegreeCharacter::RotateToTarget(float DeltaTime)
 {
-    if (!AttackTarget) return;
+    if (!AttackTarget || !IsValidAttackTarget(AttackTarget)) return;
     
     FVector LookDirection = AttackTarget->GetActorLocation() - GetActorLocation();
     LookDirection.Z = 0.0f;
@@ -178,7 +183,7 @@ void AMobaDegreeCharacter::Server_PerformAttack_Implementation()
 
 bool AMobaDegreeCharacter::IsInAttackRange() const
 {
-    if (!AttackTarget) return false;
+    if (!AttackTarget || !IsValidAttackTarget(AttackTarget)) return false;
     
     float Distance = FVector::Dist2D(GetActorLocation(), AttackTarget->GetActorLocation());
     return Distance <= CurrentAttackRange;
@@ -187,6 +192,30 @@ bool AMobaDegreeCharacter::IsInAttackRange() const
 bool AMobaDegreeCharacter::CanPerformAction() const
 {
     return CombatState != ECharacterCombatState::Casting;
+}
+
+bool AMobaDegreeCharacter::IsValidAttackTarget(AActor* Target) const
+{
+    if (!Target || !IsValid(Target))
+    {
+        return false;
+    }
+    
+    IAbilitySystemInterface* ASCInterface = Cast<IAbilitySystemInterface>(Target);
+    if (ASCInterface && ASCInterface->GetAbilitySystemComponent())
+    {
+        UAbilitySystemComponent* TargetASC = ASCInterface->GetAbilitySystemComponent();
+        const UMobaAttributeSet* TargetAttributeSet = Cast<UMobaAttributeSet>(TargetASC->GetAttributeSet(UMobaAttributeSet::StaticClass()));
+        
+        if (TargetAttributeSet)
+        {
+            float TargetHealth = TargetAttributeSet->GetHealth();
+            return TargetHealth > 0.0f;
+        }
+    }
+    
+    // If we can't check health, just verify the actor is valid
+    return IsValid(Target);
 }
 
 void AMobaDegreeCharacter::SetAttackTarget(AActor* Target)

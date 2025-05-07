@@ -64,6 +64,9 @@ public:
     
     UFUNCTION(BlueprintCallable)
     bool CanPerformAction() const;
+
+    UFUNCTION(BlueprintCallable)
+    bool IsValidAttackTarget(AActor* Target) const;
     
     // Interface functions
     virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
@@ -94,7 +97,6 @@ protected:
     
     UFUNCTION(Server, Reliable)
     void Server_PerformAttack();
-
 private:
     UPROPERTY()
     TObjectPtr<AMobaPlayerState> MobaPlayerState;

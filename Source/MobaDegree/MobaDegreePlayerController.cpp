@@ -84,7 +84,7 @@ void AMobaDegreePlayerController::TraceCursor()
     if (!PlayerCharacter) return;
 
     FHitResult HitPawnResult;
-    bool bHitSuccessfulHitPawn = GetHitResultUnderCursor(ECC_GameTraceChannel1, true, HitPawnResult);
+    bool bHitSuccessfulHitPawn = GetHitResultUnderCursorWithIgnore(ECC_GameTraceChannel1, true, HitPawnResult);
     AActor* CurrentHitActor = nullptr;
     
     if (bHitSuccessfulHitPawn && IsValid(HitPawnResult.GetActor()) && HitPawnResult.GetActor() != PlayerCharacter)
@@ -122,6 +122,35 @@ void AMobaDegreePlayerController::TraceCursor()
         }
         HoveredActor = nullptr;
     }
+}
+
+bool AMobaDegreePlayerController::GetHitResultUnderCursorWithIgnore(ECollisionChannel TraceChannel, bool bTraceComplex, FHitResult& HitResult)
+{
+    float LocationX, LocationY;
+    if (!GetMousePosition(LocationX, LocationY))
+    {
+        return false;
+    }
+
+    FVector WorldOrigin;
+    FVector WorldDirection;
+    if (!DeprojectScreenPositionToWorld(LocationX, LocationY, WorldOrigin, WorldDirection))
+    {
+        return false;
+    }
+
+    FCollisionQueryParams CollisionParams;
+    CollisionParams.bTraceComplex = bTraceComplex;
+
+    if (PlayerCharacter)
+    {
+        CollisionParams.AddIgnoredActor(PlayerCharacter);
+    }
+
+    const float TraceDistance = 10000.0f;
+    FVector EndLocation = WorldOrigin + (WorldDirection * TraceDistance);
+
+    return GetWorld()->LineTraceSingleByChannel(HitResult, WorldOrigin, EndLocation, TraceChannel, CollisionParams);
 }
 
 bool AMobaDegreePlayerController::IsEnemyHovered()
@@ -188,7 +217,7 @@ void AMobaDegreePlayerController::ProcessInput()
     }
 
     FHitResult Hit;
-    bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
+    bool bHitSuccessful = GetHitResultUnderCursorWithIgnore(ECollisionChannel::ECC_Visibility, false, Hit);
     
     if (bHitSuccessful)
     {
@@ -199,6 +228,11 @@ void AMobaDegreePlayerController::ProcessInput()
 void AMobaDegreePlayerController::PerformTargetSelection(AActor* TargetActor)
 {
     if (!TargetActor || (PlayerCharacter && PlayerCharacter->AttackTarget == TargetActor))
+    {
+        return;
+    }
+    
+    if (PlayerCharacter && !PlayerCharacter->IsValidAttackTarget(TargetActor))
     {
         return;
     }

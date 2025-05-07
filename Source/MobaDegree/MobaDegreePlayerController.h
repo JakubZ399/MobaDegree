@@ -87,7 +87,8 @@ private:
     
     UPROPERTY(EditDefaultsOnly)
     float AutoRunAcceptanceRadius = 50.f;
-    
+
+    bool GetHitResultUnderCursorWithIgnore(ECollisionChannel TraceChannel, bool bTraceComplex, FHitResult& HitResult);
     bool IsEnemyHovered();
     void HandleMovement();
     void AutoRun();
