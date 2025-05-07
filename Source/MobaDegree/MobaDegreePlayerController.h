@@ -95,4 +95,7 @@ private:
     void ProcessInput();
     void PerformMovementToLocation(const FVector& Location);
     void PerformTargetSelection(AActor* TargetActor);
+
+public:
+    FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }
 };

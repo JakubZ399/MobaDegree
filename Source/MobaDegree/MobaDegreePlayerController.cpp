@@ -228,7 +228,7 @@ void AMobaDegreePlayerController::PerformMovementToLocation(const FVector& Locat
 
     if (PlayerCharacter->AttackTarget)
     {
-        Server_ClearTarget();
+        PlayerCharacter->InterruptCombat();
     }
     
     SpawnCursorFX(Location);
@@ -273,7 +273,7 @@ void AMobaDegreePlayerController::Server_SelectTarget_Implementation(AActor* Tar
 {
     if (!IsValid(PlayerCharacter) || !IsValid(Target)) return;
     
-    PlayerCharacter->AttackTarget = Target;
+    PlayerCharacter->SetAttackTarget(Target);
     Client_OnTargetChanged(nullptr, Target);
 }
 
@@ -288,7 +288,7 @@ void AMobaDegreePlayerController::Server_ClearTarget_Implementation()
 {
     if (!IsValid(PlayerCharacter)) return;
     
-    PlayerCharacter->AttackTarget = nullptr;
+    PlayerCharacter->ClearAttackTarget();
     Client_OnTargetChanged(nullptr, nullptr);
 }
 
