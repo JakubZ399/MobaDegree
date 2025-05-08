@@ -29,8 +29,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Health")
 	void RefreshHealthBar();
 
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	void RefreshManaBar();
+
 	UFUNCTION(BlueprintCallable)
 	void SetHealthBarColor();
+
+	//Setup this on Player character
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Health")
+	bool bIsPlayer{false};
 
 protected:
 	virtual void BeginPlay() override;
@@ -50,12 +57,22 @@ private:
 
 	void OnHealthWidgetChange(const FOnAttributeChangeData& Data);
 	void OnMaxHealthWidgetChange(const FOnAttributeChangeData& Data);
+
+	void OnManaWidgetChange(const FOnAttributeChangeData& Data);
+	void OnMaxManaWidgetChange(const FOnAttributeChangeData& Data);
 	
 	void UpdateHealthBar();
+	void UpdateManaWidget();
 
 	float Health{0.f};
 	float MaxHealth{0.f};
+
+	float Mana{0.f};
+	float MaxMana{0.f};
     
 	FDelegateHandle HealthChangedDelegateHandle;
 	FDelegateHandle MaxHealthChangedDelegateHandle;
+
+	FDelegateHandle ManaChangedDelegateHandle;
+	FDelegateHandle MaxManaChangedDelegateHandle;
 };

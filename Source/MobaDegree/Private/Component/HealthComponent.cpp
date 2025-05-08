@@ -48,6 +48,19 @@ void UHealthComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
             {
                 OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxHealthAttribute()).Remove(MaxHealthChangedDelegateHandle);
             }
+
+            if (bIsPlayer)
+            {
+                if (ManaChangedDelegateHandle.IsValid())
+                {
+                    OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetManaAttribute()).Remove(ManaChangedDelegateHandle);
+                }
+            
+                if (MaxManaChangedDelegateHandle.IsValid())
+                {
+                    OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxManaAttribute()).Remove(MaxManaChangedDelegateHandle);
+                }
+            }
         }
     }
 }
@@ -93,11 +106,25 @@ void UHealthComponent::HealthBarInitialization()
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
     
     HealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetHealthAttribute())
-        .AddUObject(this, &UHealthComponent::OnHealthWidgetChange);
-    
-    MaxHealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxHealthAttribute())
-        .AddUObject(this, &UHealthComponent::OnMaxHealthWidgetChange);
+    .AddUObject(this, &UHealthComponent::OnHealthWidgetChange);
 
+    MaxHealthChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxHealthAttribute())
+    .AddUObject(this, &UHealthComponent::OnMaxHealthWidgetChange);
+
+    if (bIsPlayer)
+    {
+        Mana = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetManaAttribute(), bFound);
+        MaxMana = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxManaAttribute(), bFound);
+        
+        ManaChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetManaAttribute())
+        .AddUObject(this, &UHealthComponent::OnManaWidgetChange);
+
+        MaxManaChangedDelegateHandle = OwnerAbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AttributeSet->GetMaxManaAttribute())
+        .AddUObject(this, &UHealthComponent::OnMaxManaWidgetChange);
+
+        UpdateManaWidget();
+    }
+    
     UpdateHealthBar();
 }
 
@@ -119,6 +146,26 @@ void UHealthComponent::RefreshHealthBar()
     MaxHealth = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxHealthAttribute(), bFound);
     
     UpdateHealthBar();
+}
+
+void UHealthComponent::RefreshManaBar()
+{
+    if (!OwnerAbilitySystemComponent && !bIsPlayer)
+    {
+        return;
+    }
+    
+    const UMobaAttributeSet* AttributeSet = Cast<UMobaAttributeSet>(OwnerAbilitySystemComponent->GetAttributeSet(UMobaAttributeSet::StaticClass()));
+    if (!AttributeSet)
+    {
+        return;
+    }
+
+    bool bFound = false;
+    Mana = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetManaAttribute(), bFound);
+    MaxMana = OwnerAbilitySystemComponent->GetGameplayAttributeValue(AttributeSet->GetMaxManaAttribute(), bFound);
+    
+    UpdateManaWidget();
 }
 
 void UHealthComponent::SetHealthBarColor()
@@ -146,6 +193,40 @@ void UHealthComponent::OnMaxHealthWidgetChange(const FOnAttributeChangeData& Dat
 {
     MaxHealth = Data.NewValue;
     UpdateHealthBar();
+}
+
+void UHealthComponent::OnManaWidgetChange(const FOnAttributeChangeData& Data)
+{
+    Mana = Data.NewValue;
+    UpdateManaWidget();
+}
+
+void UHealthComponent::OnMaxManaWidgetChange(const FOnAttributeChangeData& Data)
+{
+    MaxMana = Data.NewValue;
+    UpdateManaWidget();
+}
+
+void UHealthComponent::UpdateManaWidget()
+{
+    if (!bIsPlayer) return;
+    
+    if (MaxMana > 0)
+    {
+        float ManaPercent = FMath::Clamp(Mana / MaxMana, 0.f, 1.f);
+
+        if (AMobaDegreePlayerController* PlayerController = Cast<AMobaDegreePlayerController>(OwnerPawn->GetController()))
+        {
+            if (PlayerController->MainUserWidget)
+            {
+                if (PlayerController->MainUserWidget->ManaBar)
+                {
+                    PlayerController->MainUserWidget->ManaBar->SetTextStatValue(Mana);
+                    PlayerController->MainUserWidget->ManaBar->SetTextStatMaxValue(MaxMana);
+                }
+            }
+        }
+    }
 }
 
 void UHealthComponent::UpdateHealthBar()

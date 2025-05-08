@@ -315,6 +315,7 @@ void AMobaDegreeCharacter::InitializeAttribute()
         HealthComponent->HealthBarInitialization();
         HealthComponent->SetHealthBarColor();
         HealthComponent->RefreshHealthBar();
+        HealthComponent->RefreshManaBar();
     }
     
     if (!HealthBarWidget->GetWidget())
@@ -328,6 +329,7 @@ void AMobaDegreeCharacter::InitializeAttribute()
                 HealthComponent->HealthBarInitialization();
                 HealthComponent->SetHealthBarColor();
                 HealthComponent->RefreshHealthBar();
+                HealthComponent->RefreshManaBar();
             }
         }, 0.1f, false);
     }
