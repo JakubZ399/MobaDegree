@@ -11,6 +11,7 @@
 
 AMobaDegreeGameMode::AMobaDegreeGameMode()
 {
+	bUseSeamlessTravel = true;
 }
 
 void AMobaDegreeGameMode::ServerTravel(FString Map)
