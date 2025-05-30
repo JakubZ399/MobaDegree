@@ -318,7 +318,7 @@ void AMobaDegreeCharacter::InitializeAttribute()
         HealthComponent->RefreshManaBar();
     }
     
-    if (!HealthBarWidget->GetWidget())
+    if (HealthComponent && HealthBarWidget && !HealthBarWidget->GetWidget())
     {
         FTimerHandle TimerHandle;
         GetWorld()->GetTimerManager().SetTimer(TimerHandle, [this]()

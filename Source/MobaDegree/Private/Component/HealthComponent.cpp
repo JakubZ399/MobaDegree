@@ -150,7 +150,7 @@ void UHealthComponent::RefreshHealthBar()
 
 void UHealthComponent::RefreshManaBar()
 {
-    if (!OwnerAbilitySystemComponent && !bIsPlayer)
+    if (!OwnerAbilitySystemComponent || !bIsPlayer)
     {
         return;
     }
@@ -209,6 +209,7 @@ void UHealthComponent::OnMaxManaWidgetChange(const FOnAttributeChangeData& Data)
 
 void UHealthComponent::UpdateManaWidget()
 {
+    if (!HealthBarWidget) return;
     if (!bIsPlayer) return;
     
     if (MaxMana > 0)
