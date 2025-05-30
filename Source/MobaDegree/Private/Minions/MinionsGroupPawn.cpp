@@ -32,8 +32,8 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	SpawnPointMinionRanged = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPointMinionRanged"));
 	SpawnPointMinionRanged->SetupAttachment(SpawnPointsMinion);
 
-	SpawnPoint_Melee_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Middle"));
-	SpawnPoint_Melee_Middle->SetupAttachment(SpawnPointMinionMelee);
+	/*SpawnPoint_Melee_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Middle"));
+	SpawnPoint_Melee_Middle->SetupAttachment(SpawnPointMinionMelee);*/
 
 	SpawnPoint_Melee_Right = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Right"));
 	SpawnPoint_Melee_Right->SetupAttachment(SpawnPointMinionMelee);
@@ -41,8 +41,8 @@ AMinionsGroupPawn::AMinionsGroupPawn()
 	SpawnPoint_Melee_Left = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Melee_Left"));
 	SpawnPoint_Melee_Left->SetupAttachment(SpawnPointMinionMelee);
 	
-	SpawnPoint_Ranged_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Middle"));
-	SpawnPoint_Ranged_Middle->SetupAttachment(SpawnPointMinionRanged);
+	/*SpawnPoint_Ranged_Middle = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Middle"));
+	SpawnPoint_Ranged_Middle->SetupAttachment(SpawnPointMinionRanged);*/
 
 	SpawnPoint_Ranged_Right = CreateDefaultSubobject<USceneComponent>(TEXT("SpawnPoint_Ranged_Right"));
 	SpawnPoint_Ranged_Right->SetupAttachment(SpawnPointMinionRanged);

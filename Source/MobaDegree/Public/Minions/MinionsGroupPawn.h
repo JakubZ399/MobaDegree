@@ -142,15 +142,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
 	TObjectPtr<USceneComponent> SpawnPointMinionRanged;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
-	TObjectPtr<USceneComponent> SpawnPoint_Melee_Middle;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
+	TObjectPtr<USceneComponent> SpawnPoint_Melee_Middle;*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
 	TObjectPtr<USceneComponent> SpawnPoint_Melee_Right;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
 	TObjectPtr<USceneComponent> SpawnPoint_Melee_Left;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
-	TObjectPtr<USceneComponent> SpawnPoint_Ranged_Middle;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
+	TObjectPtr<USceneComponent> SpawnPoint_Ranged_Middle;*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
 	TObjectPtr<USceneComponent> SpawnPoint_Ranged_Right;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "SpawnPoints")
