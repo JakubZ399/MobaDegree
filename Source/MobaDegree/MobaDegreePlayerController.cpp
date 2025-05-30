@@ -60,20 +60,37 @@ void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     
+    CheckAndClearSplineIfNeeded();
     HandleMovement();
     TraceCursor();
+}
+
+void AMobaDegreePlayerController::CheckAndClearSplineIfNeeded()
+{
+    if (!PlayerCharacter) return;
+
+    if (PlayerCharacter->AttackTarget)
+    {
+        SplineComponent->ClearSplinePoints();
+        return;
+    }
+
+    if (bLastClickWasAttack && GetWorld()->GetTimeSeconds() - LastAttackClickTime > AttackClickTimeout)
+    {
+        bLastClickWasAttack = false;
+    }
 }
 
 void AMobaDegreePlayerController::HandleMovement()
 {
     if (!PlayerCharacter) return;
-    
+
     if (PlayerCharacter->AttackTarget)
     {
         return;
     }
-    
-    if (SplineComponent->GetNumberOfSplinePoints() > 0)
+
+    if (SplineComponent->GetNumberOfSplinePoints() > 0 && !bLastClickWasAttack)
     {
         AutoRun();
     }
@@ -209,19 +226,22 @@ void AMobaDegreePlayerController::ProcessInput()
     {
         return;
     }
-
+    
     if (IsValid(HoveredActor) && IsEnemyHovered())
     {
         PerformTargetSelection(HoveredActor);
         return;
     }
 
-    FHitResult Hit;
-    bool bHitSuccessful = GetHitResultUnderCursorWithIgnore(ECollisionChannel::ECC_Visibility, false, Hit);
-    
-    if (bHitSuccessful)
+    if (!bLastClickWasAttack || (CurrentTime - LastAttackClickTime > AttackClickTimeout))
     {
-        PerformMovementToLocation(Hit.Location);
+        FHitResult Hit;
+        bool bHitSuccessful = GetHitResultUnderCursorWithIgnore(ECollisionChannel::ECC_Visibility, false, Hit);
+        
+        if (bHitSuccessful)
+        {
+            PerformMovementToLocation(Hit.Location);
+        }
     }
 }
 
@@ -236,6 +256,11 @@ void AMobaDegreePlayerController::PerformTargetSelection(AActor* TargetActor)
     {
         return;
     }
+
+    bLastClickWasAttack = true;
+    LastAttackClickTime = GetWorld()->GetTimeSeconds();
+
+    SplineComponent->ClearSplinePoints();
 
     AttackTarget = TargetActor;
     LastTargetChangeTime = GetWorld()->GetTimeSeconds();
@@ -260,6 +285,8 @@ void AMobaDegreePlayerController::PerformMovementToLocation(const FVector& Locat
 {
     if (!PlayerCharacter) return;
 
+    bLastClickWasAttack = false;
+
     if (PlayerCharacter->AttackTarget)
     {
         PlayerCharacter->InterruptCombat();
@@ -275,6 +302,15 @@ void AMobaDegreePlayerController::PerformMovementToLocation(const FVector& Locat
         {
             SplineComponent->AddSplinePoint(PathPoint, ESplineCoordinateSpace::World);
         }
+    }
+}
+
+void AMobaDegreePlayerController::ClearMovementSpline()
+{
+    if (SplineComponent)
+    {
+        SplineComponent->ClearSplinePoints();
+        bLastClickWasAttack = false;
     }
 }
 
@@ -316,11 +352,20 @@ void AMobaDegreePlayerController::Client_OnTargetChanged_Implementation(AActor* 
     if (!IsLocalController() || !PlayerCharacter) return;
     
     PlayerCharacter->AttackTarget = NewTarget;
+
+    if (!NewTarget)
+    {
+        SplineComponent->ClearSplinePoints();
+        bLastClickWasAttack = false;
+    }
 }
 
 void AMobaDegreePlayerController::Server_ClearTarget_Implementation()
 {
     if (!IsValid(PlayerCharacter)) return;
+
+    SplineComponent->ClearSplinePoints();
+    bLastClickWasAttack = false;
     
     PlayerCharacter->ClearAttackTarget();
     Client_OnTargetChanged(nullptr, nullptr);

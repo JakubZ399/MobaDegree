@@ -48,6 +48,9 @@ public:
     UFUNCTION(Client, Reliable)
     void Client_OnTargetChanged(AActor* OldTarget, AActor* NewTarget);
 
+    UFUNCTION(BlueprintCallable)
+    void ClearMovementSpline();
+
 protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;
@@ -87,6 +90,10 @@ private:
     
     UPROPERTY(EditDefaultsOnly)
     float AutoRunAcceptanceRadius = 50.f;
+    
+    bool bLastClickWasAttack = false;
+    float LastAttackClickTime = 0.0f;
+    const float AttackClickTimeout = 0.3f;
 
     bool GetHitResultUnderCursorWithIgnore(ECollisionChannel TraceChannel, bool bTraceComplex, FHitResult& HitResult);
     bool IsEnemyHovered();
@@ -96,6 +103,7 @@ private:
     void ProcessInput();
     void PerformMovementToLocation(const FVector& Location);
     void PerformTargetSelection(AActor* TargetActor);
+    void CheckAndClearSplineIfNeeded();
 
 public:
     FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }

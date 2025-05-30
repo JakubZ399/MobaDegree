@@ -10,6 +10,7 @@
 #include "Materials/Material.h"
 #include "Engine/World.h"
 #include "GameplayEffect.h"
+#include "MobaDegreePlayerController.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
@@ -91,9 +92,19 @@ void AMobaDegreeCharacter::Tick(float DeltaSeconds)
 
 void AMobaDegreeCharacter::HandleCombat(float DeltaTime)
 {
-    if (!AttackTarget || !IsValidAttackTarget(AttackTarget))
+    if (AttackTarget && !IsValidAttackTarget(AttackTarget))
     {
         ClearAttackTarget();
+        Server_SetCombatState(ECharacterCombatState::Idle);
+        return;
+    }
+    
+    if (!AttackTarget)
+    {
+        if (CombatState != ECharacterCombatState::Idle)
+        {
+            Server_SetCombatState(ECharacterCombatState::Idle);
+        }
         return;
     }
     
@@ -243,7 +254,20 @@ void AMobaDegreeCharacter::SetAttackTarget(AActor* Target)
 
 void AMobaDegreeCharacter::ClearAttackTarget()
 {
+    if (AttackTarget)
+    {
+        if (IMobaInteraction* MobaInteraction = Cast<IMobaInteraction>(AttackTarget))
+        {
+            MobaInteraction->Execute_ShowOutline(AttackTarget, false, 0);
+        }
+    }
+    
     SetAttackTarget(nullptr);
+    
+    if (AMobaDegreePlayerController* MobaController = Cast<AMobaDegreePlayerController>(GetController()))
+    {
+        MobaController->ClearMovementSpline();
+    }
 }
 
 void AMobaDegreeCharacter::InterruptCombat()
