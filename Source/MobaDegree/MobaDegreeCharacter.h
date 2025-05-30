@@ -137,4 +137,5 @@ private:
 public:
     FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
     FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+    UFUNCTION(BlueprintCallable) FORCEINLINE void SetCombatState(ECharacterCombatState NewState) { CombatState = NewState; }
 };
