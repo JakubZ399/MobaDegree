@@ -92,23 +92,26 @@ void AMobaDegreeCharacter::Tick(float DeltaSeconds)
 
 void AMobaDegreeCharacter::HandleCombat(float DeltaTime)
 {
-    if (AttackTarget && !IsValidAttackTarget(AttackTarget))
+    if (CombatState != ECharacterCombatState::Casting)
     {
-        ClearAttackTarget();
-        Server_SetCombatState(ECharacterCombatState::Idle);
-        return;
-    }
-    
-    if (!AttackTarget)
-    {
-        if (CombatState != ECharacterCombatState::Idle)
+        if (AttackTarget && !IsValidAttackTarget(AttackTarget))
         {
+            ClearAttackTarget();
             Server_SetCombatState(ECharacterCombatState::Idle);
+            return;
         }
-        return;
-    }
     
-    UpdateCombatState();
+        if (!AttackTarget)
+        {
+            if (CombatState != ECharacterCombatState::Idle)
+            {
+                Server_SetCombatState(ECharacterCombatState::Idle);
+            }
+            return;
+        }
+    
+        UpdateCombatState();
+    }
     
     switch (CombatState)
     {
@@ -121,6 +124,11 @@ void AMobaDegreeCharacter::HandleCombat(float DeltaTime)
         RotateToTarget(DeltaTime);
         PerformAttack();
         break;
+
+    case ECharacterCombatState::Casting:
+        RotateToTarget(DeltaTime);
+        break;
+        
     }
 }
 

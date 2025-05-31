@@ -58,6 +58,12 @@ void AMinionsGroupPawn::BeginPlay()
 
 	AttackTarget = nullptr;
 	
+	// Update waypoint target if using new system
+	if (WaypointPath.Num() > 0)
+	{
+		UpdateWaypointTarget();
+	}
+	
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().SetTimer(FindActorTimerHandle, this, &ThisClass::FindValidAttackTarget, ScanTime, true);
@@ -66,22 +72,25 @@ void AMinionsGroupPawn::BeginPlay()
 
 void AMinionsGroupPawn::FindValidAttackTarget()
 {
+	// Skip if we're in combat exit delay
+	if (GetWorld()->GetTimerManager().IsTimerActive(CombatExitTimerHandle))
+	{
+		return;
+	}
+	
 	if (AttackTarget)
 	{
+		// Check if player left range
 		if (AttackTarget->IsA(AMobaDegreeCharacter::StaticClass()))
 		{
 			TArray<AActor*> CurrentTargets = FindActorsInRange();
 			if (!CurrentTargets.Contains(AttackTarget))
 			{
-				UnBindBindEnemyDestroy(AttackTarget);
-				OnEnemyDestroyed(nullptr);
-				AttackTarget = nullptr;
-			}
-			else
-			{
+				ClearCurrentTarget();
 				return;
 			}
 		}
+		// For non-player targets, keep attacking until destroyed
 		else
 		{
 			return;
@@ -90,9 +99,11 @@ void AMinionsGroupPawn::FindValidAttackTarget()
 	
 	TargetsInRange = FindActorsInRange();
 
+	// Destroy group if no minions left
 	if (SpawnedMinions.Num() == 0)
 	{
 		Destroy();
+		return;
 	}
 	
 	if (TargetsInRange.Num() > 0)
@@ -127,7 +138,18 @@ void AMinionsGroupPawn::FindValidAttackTarget()
 		}
 		SelectTargetByPriority();
 	}
-	else if (TargetsInRange.Num() == 0)
+	else if (TargetsInRange.Num() == 0 && bInCombat)
+	{
+		// Start combat exit delay
+		GetWorld()->GetTimerManager().SetTimer(CombatExitTimerHandle, this, &ThisClass::OnCombatExitDelayComplete, CombatExitDelay, false);
+	}
+}
+
+void AMinionsGroupPawn::OnCombatExitDelayComplete()
+{
+	// Check again if there are targets in range
+	TArray<AActor*> CurrentTargets = FindActorsInRange();
+	if (CurrentTargets.Num() == 0)
 	{
 		OnEnemyDestroyed(nullptr);
 	}
@@ -136,9 +158,9 @@ void AMinionsGroupPawn::FindValidAttackTarget()
 void AMinionsGroupPawn::SelectTargetByPriority()
 {
 	TArray<ETargetTypePriority> PriorityOrder = {
-	ETargetTypePriority::Tower,
-	ETargetTypePriority::MinionGroup,
-	ETargetTypePriority::Player,
+		ETargetTypePriority::Tower,
+		ETargetTypePriority::MinionGroup,
+		ETargetTypePriority::Player,
 	};
 
 	for (ETargetTypePriority Priority : PriorityOrder)
@@ -149,7 +171,6 @@ void AMinionsGroupPawn::SelectTargetByPriority()
 			if (Targets.Num() > 0)
 			{
 				AActor* SelectedTarget = FindClosestTarget(Targets);
-				
 				HandleSelectedTarget(SelectedTarget, Priority);
 				return;
 			}
@@ -159,6 +180,9 @@ void AMinionsGroupPawn::SelectTargetByPriority()
 
 void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority Priority)
 {
+	// Clear combat exit timer if we found a new target
+	GetWorld()->GetTimerManager().ClearTimer(CombatExitTimerHandle);
+	
 	switch (Priority)
 	{
 	case ETargetTypePriority::Tower:
@@ -176,10 +200,13 @@ void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority
 		if (Target->IsA(AMinionsGroupPawn::StaticClass()))
 		{
 			AMinionBase* ClosestMinion = FindClosestMinionFromGroup(Target);
-			SetupDetectedEnemy(bDetectMinion, ClosestMinion);
-			if (bDebugMode)
+			if (ClosestMinion)
 			{
-				DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+				SetupDetectedEnemy(bDetectMinion, ClosestMinion);
+				if (bDebugMode)
+				{
+					DrawDebugCapsule(GetWorld(), ClosestMinion->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
+				}
 			}
 		}
 		break;
@@ -187,11 +214,11 @@ void AMinionsGroupPawn::HandleSelectedTarget(AActor* Target, ETargetTypePriority
 	case ETargetTypePriority::Player:
 		if (Target->IsA(AMobaDegreeCharacter::StaticClass()))
 		{
+			SetupDetectedEnemy(bDetectPlayers, Target);
 			if (bDebugMode)
 			{
 				DrawDebugCapsule(GetWorld(), Target->GetActorLocation(), 65.f, 45.f, FQuat::Identity, FColor::Red, false, 1.f);
 			}
-			SetupDetectedEnemy(bDetectPlayers, Target);
 		}
 		break;
             
@@ -312,12 +339,25 @@ void AMinionsGroupPawn::SetAttackTargetBlackboard(AActor* Target, FName Key)
 
 void AMinionsGroupPawn::Initialize()
 {
-	if (!EnemyLaneTarget) { UE_LOG(LogTemp, Warning, TEXT("MinionsGroupSpawn: Setup EnemyLaneTarget")); return;}
+	// Update waypoint target if using new system
+	if (WaypointPath.Num() > 0)
+	{
+		UpdateWaypointTarget();
+	}
+	// Fallback to old system
+	else if (!EnemyLaneTarget) 
+	{ 
+		UE_LOG(LogTemp, Warning, TEXT("MinionsGroupSpawn: Setup EnemyLaneTarget or WaypointPath")); 
+		return;
+	}
 
-	FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), EnemyLaneTarget->GetActorLocation());
-	SetActorRotation(NewRotation);
-
-	SetAttackTargetBlackboard(EnemyLaneTarget, EnemyLaneTargetKey);
+	AActor* InitialTarget = GetCurrentWaypoint();
+	if (InitialTarget)
+	{
+		FRotator NewRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InitialTarget->GetActorLocation());
+		SetActorRotation(NewRotation);
+		SetAttackTargetBlackboard(InitialTarget, EnemyLaneTargetKey);
+	}
 	
 	if (bDebugRespawnMelee && MeleeMinionClass)
 	{
@@ -359,7 +399,14 @@ void AMinionsGroupPawn::MinionsSpawn(TSubclassOf<AMinionBase> MinionClass, UScen
 
 bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, AActor* Actor)
 {
-	if (!bEnemyBoolDetection) {return true;}
+	if (!bEnemyBoolDetection || !Actor) {return true;}
+	
+	// Clear previous target if exists
+	if (AttackTarget && AttackTarget != Actor)
+	{
+		ClearCurrentTarget();
+	}
+	
 	bInCombat = true; 
 
 	if (AAIController* AIController = GetController<AAIController>())
@@ -375,11 +422,20 @@ bool AMinionsGroupPawn::SetupDetectedEnemy(bool bEnemyBoolDetection, AActor* Act
 	return false;
 }
 
+void AMinionsGroupPawn::ClearCurrentTarget()
+{
+	if (AttackTarget)
+	{
+		UnBindEnemyDestroy(AttackTarget);
+		AttackTarget = nullptr;
+	}
+}
+
 void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
 {
 	if (DestroyedActor)
 	{
-		UnBindBindEnemyDestroy(DestroyedActor);
+		UnBindEnemyDestroy(DestroyedActor);
 	}
 	
 	bInCombat = false;
@@ -393,6 +449,12 @@ void AMinionsGroupPawn::OnEnemyDestroyed(AActor* DestroyedActor)
 		}
 	}
 	
+	// Update waypoint if tower was destroyed
+	if (DestroyedActor && DestroyedActor->IsA(AMobaTower::StaticClass()))
+	{
+		UpdateWaypointTarget();
+	}
+	
 	OnAttackTargetSet.Broadcast(nullptr);
 }
 
@@ -403,7 +465,6 @@ void AMinionsGroupPawn::CallOnAttackTargetSet()
 
 void AMinionsGroupPawn::OnMinionDeath(AActor* DeadMinion)
 {
-	AttackTarget = nullptr;
 	AMinionBase* DeadMinionRef = Cast<AMinionBase>(DeadMinion);
 	if (DeadMinionRef)
 	{
@@ -415,13 +476,69 @@ void AMinionsGroupPawn::BindEnemyDestroy(AActor* ActorToBind)
 {
 	if (ActorToBind && !ActorToBind->IsPendingKillPending())
 	{
-		ActorToBind->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+		// Check if already bound
+		if (!BoundActors.Contains(ActorToBind))
+		{
+			ActorToBind->OnDestroyed.AddDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+			BoundActors.Add(ActorToBind);
+		}
 	}
 }
 
-void AMinionsGroupPawn::UnBindBindEnemyDestroy(AActor* ActorToUnBind)
+void AMinionsGroupPawn::UnBindEnemyDestroy(AActor* ActorToUnBind)
 {
-	ActorToUnBind->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+	if (ActorToUnBind && BoundActors.Contains(ActorToUnBind))
+	{
+		ActorToUnBind->OnDestroyed.RemoveDynamic(this, &AMinionsGroupPawn::OnEnemyDestroyed);
+		BoundActors.Remove(ActorToUnBind);
+	}
+}
+
+void AMinionsGroupPawn::UpdateWaypointTarget()
+{
+	if (WaypointPath.Num() == 0) return;
+	
+	// Find next valid waypoint
+	while (CurrentWaypointIndex < WaypointPath.Num())
+	{
+		AActor* Waypoint = WaypointPath[CurrentWaypointIndex];
+		
+		// Skip destroyed waypoints (towers)
+		if (!IsValid(Waypoint))
+		{
+			CurrentWaypointIndex++;
+			continue;
+		}
+		
+		// Check if we're close enough to current waypoint
+		if (GetDistanceTo(Waypoint) < WaypointReachDistance)
+		{
+			CurrentWaypointIndex++;
+			continue;
+		}
+		
+		// Set this as our target
+		SetAttackTargetBlackboard(Waypoint, EnemyLaneTargetKey);
+		return;
+	}
+	
+	// If we've gone through all waypoints, use the last valid one
+	if (CurrentWaypointIndex >= WaypointPath.Num() && WaypointPath.Num() > 0)
+	{
+		CurrentWaypointIndex = WaypointPath.Num() - 1;
+		SetAttackTargetBlackboard(WaypointPath[CurrentWaypointIndex], EnemyLaneTargetKey);
+	}
+}
+
+AActor* AMinionsGroupPawn::GetCurrentWaypoint()
+{
+	if (WaypointPath.Num() > 0 && CurrentWaypointIndex < WaypointPath.Num())
+	{
+		return WaypointPath[CurrentWaypointIndex];
+	}
+	
+	// Fallback to old system
+	return EnemyLaneTarget;
 }
 
 EGameTeam AMinionsGroupPawn::GetTeamInterface_Implementation() const

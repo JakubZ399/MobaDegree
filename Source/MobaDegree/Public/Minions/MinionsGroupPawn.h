@@ -68,6 +68,37 @@ public:
 
 	AMinionBase* FindClosestMinionFromGroup(AActor* EnemyGroup);
 	
+	// Track bound actors to prevent duplicate bindings
+	UPROPERTY()
+	TArray<AActor*> BoundActors;
+	
+	// Delay before changing target after combat ends
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup")
+	float CombatExitDelay{1.5f};
+	
+	FTimerHandle CombatExitTimerHandle;
+	
+	void OnCombatExitDelayComplete();
+	
+#pragma endregion
+
+#pragma region Waypoint System
+
+	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Waypoints")
+	TArray<AActor*> WaypointPath;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Waypoints")
+	int32 CurrentWaypointIndex{0};
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Waypoints")
+	float WaypointReachDistance{200.f};
+	
+	UFUNCTION(BlueprintCallable)
+	void UpdateWaypointTarget();
+	
+	UFUNCTION(BlueprintCallable)
+	AActor* GetCurrentWaypoint();
+
 #pragma endregion
 
 	UPROPERTY(BlueprintAssignable, Category = "Combat")
@@ -76,7 +107,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void Initialize();
 	
-	//To setup
+	//To setup - DEPRECATED, use WaypointPath instead
 	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category = "Setup")
 	TObjectPtr<AActor> EnemyLaneTarget;
 
@@ -130,7 +161,9 @@ public:
 	UFUNCTION(BlueprintCallable) void OnEnemyDestroyed(AActor* DestroyedActor);
 	
 	UFUNCTION(BlueprintCallable) void BindEnemyDestroy(AActor* ActorToBind);
-	UFUNCTION(BlueprintCallable) void UnBindBindEnemyDestroy(AActor* ActorToUnBind);
+	UFUNCTION(BlueprintCallable) void UnBindEnemyDestroy(AActor* ActorToUnBind);
+	
+	void ClearCurrentTarget();
 
 
 #pragma region MinionsSpawnPoints

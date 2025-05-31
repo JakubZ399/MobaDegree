@@ -59,10 +59,15 @@ void AMobaDegreePlayerController::OnRep_Pawn()
 void AMobaDegreePlayerController::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
-    
-    CheckAndClearSplineIfNeeded();
-    HandleMovement();
-    TraceCursor();
+
+    if (!PlayerCharacter) return;
+
+    if (PlayerCharacter->CombatState != ECharacterCombatState::Casting)
+    {
+        CheckAndClearSplineIfNeeded();
+        HandleMovement();
+        TraceCursor();
+    }
 }
 
 void AMobaDegreePlayerController::CheckAndClearSplineIfNeeded()
