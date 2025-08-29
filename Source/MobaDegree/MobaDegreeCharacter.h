@@ -75,6 +75,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
     TSubclassOf<UGameplayAbility> PrimaryAttackAbility;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
+    TSubclassOf<UGameplayAbility> Ability1;
+
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual EGameTeam GetTeamInterface_Implementation() const override;
 

@@ -1,6 +1,8 @@
 // 2025 Jakub Żurawik. All Rights Reserved.
 
 #include "MobaDegreeCharacter.h"
+
+#include "GameplayAbilitySet.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -75,6 +77,20 @@ void AMobaDegreeCharacter::BeginPlay()
     Super::BeginPlay();
     
     MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
+
+    FTimerHandle TimerHandle;
+    GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+    {
+        if (HasAuthority())
+        {
+            FGameplayAbilitySpec PrimaryAttackAbilitySpec = AbilitySystemComponent->BuildAbilitySpecFromClass(PrimaryAttackAbility);
+            AbilitySystemComponent->GiveAbility(PrimaryAttackAbilitySpec);
+
+            FGameplayAbilitySpec Ability1Spec = AbilitySystemComponent->BuildAbilitySpecFromClass(Ability1);
+            AbilitySystemComponent->GiveAbility(Ability1Spec);
+        }
+    },
+        1.f, false);
 }
 
 void AMobaDegreeCharacter::Tick(float DeltaSeconds)
