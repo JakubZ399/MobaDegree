@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "MobaDegreePlayerController.generated.h"
@@ -13,8 +14,6 @@ class UNiagaraSystem;
 class UInputMappingContext;
 class UInputAction;
 class AMobaDegreeCharacter;
-
-DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS()
 class AMobaDegreePlayerController : public APlayerController
@@ -29,6 +28,9 @@ public:
 
     UFUNCTION(Client, Reliable)
     void CreateMainWidget();
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void InitializeMainWidgetBlueprintVariable();
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UMobaMainUserWidget> MainUserWidget;
@@ -45,33 +47,39 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
     UInputAction* SetDestinationClickAction;
 
-    UFUNCTION(Client, Reliable)
-    void Client_OnTargetChanged(AActor* OldTarget, AActor* NewTarget);
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* LookAction;
 
-    UFUNCTION(BlueprintCallable)
-    void ClearMovementSpline();
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* MoveAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* AttackAction;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Combat")
+    TObjectPtr<AActor> TraceTarget;
+
+    UPROPERTY(BlueprintReadWrite, Category = "Combat")
+    TObjectPtr<AActor> TraceTargetEnemy;
+
+    UFUNCTION(BlueprintImplementableEvent, Category = "Combat")
+    FHitResult PerformTraceFromScreen();
 
 protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;
 
-    void OnInputStarted();
-    void OnSetDestinationReleased();
+    void Look(const FInputActionValue& Value);
+    void Move(const FInputActionValue& Value);
+    void PerformAttack(const FInputActionValue& Value);
 
-    void SpawnCursorFX(const FVector& Location);
-    
-    UFUNCTION(Server, Reliable)
-    void Server_SelectTarget(AActor* Target);
-    
-    UFUNCTION(Server, Reliable)
-    void Server_ClearTarget();
-    
-    UFUNCTION(Server, Reliable)
-    void Server_MoveToLocation(const FVector& Location);
+    UFUNCTION(BlueprintImplementableEvent)
+    void GetTraceTarget();
+
+    UFUNCTION(BlueprintCallable)
+    FHitResult TraceFromeScreenCenter(float Distance);
 
 private:
-    UPROPERTY(VisibleAnywhere)
-    TObjectPtr<USplineComponent> SplineComponent;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
@@ -81,29 +89,6 @@ private:
 
     UPROPERTY()
     TObjectPtr<AActor> AttackTarget;
-    
-    UPROPERTY()
-    float LastTargetChangeTime = 0.0f;
-    
-    UPROPERTY(EditAnywhere, Category = "Targeting")
-    float TargetDebounceTime = 0.1f;
-    
-    UPROPERTY(EditDefaultsOnly)
-    float AutoRunAcceptanceRadius = 50.f;
-    
-    bool bLastClickWasAttack = false;
-    float LastAttackClickTime = 0.0f;
-    const float AttackClickTimeout = 0.3f;
-
-    bool GetHitResultUnderCursorWithIgnore(ECollisionChannel TraceChannel, bool bTraceComplex, FHitResult& HitResult);
-    bool IsEnemyHovered();
-    void HandleMovement();
-    void AutoRun();
-    void TraceCursor();
-    void ProcessInput();
-    void PerformMovementToLocation(const FVector& Location);
-    void PerformTargetSelection(AActor* TargetActor);
-    void CheckAndClearSplineIfNeeded();
 
 public:
     FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }

@@ -49,25 +49,6 @@ public:
     UFUNCTION()
     void OnRep_CombatState();
     
-    // Combat Functions
-    UFUNCTION(BlueprintCallable)
-    void SetAttackTarget(AActor* Target);
-    
-    UFUNCTION(BlueprintCallable)
-    void ClearAttackTarget();
-    
-    UFUNCTION(BlueprintCallable)
-    bool IsInAttackRange() const;
-    
-    UFUNCTION(BlueprintCallable)
-    void InterruptCombat();
-    
-    UFUNCTION(BlueprintCallable)
-    bool CanPerformAction() const;
-
-    UFUNCTION(BlueprintCallable)
-    bool IsValidAttackTarget(AActor* Target) const;
-    
     // Interface functions
     virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
     
@@ -78,6 +59,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
     TSubclassOf<UGameplayAbility> Ability1;
 
+    UFUNCTION(BlueprintImplementableEvent)
+    void PerformAttack();
+
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual EGameTeam GetTeamInterface_Implementation() const override;
 
@@ -87,19 +71,7 @@ protected:
     
     void InitializeAttribute();
     void InitAbilityActorInfo();
-    
-    // Combat Logic
-    void HandleCombat(float DeltaTime);
-    void MoveToTarget();
-    void PerformAttack();
-    void UpdateCombatState();
-    void RotateToTarget(float DeltaTime);
-    
-    UFUNCTION(Server, Reliable)
-    void Server_SetCombatState(ECharacterCombatState NewState);
-    
-    UFUNCTION(Server, Reliable)
-    void Server_PerformAttack();
+
 private:
     UPROPERTY()
     TObjectPtr<AMobaPlayerState> MobaPlayerState;
@@ -130,10 +102,6 @@ private:
     
     UPROPERTY()
     TObjectPtr<UMobaAttributeSet> AttributeSet;
-    
-    // Combat Properties
-    UPROPERTY(EditAnywhere, Category = "Combat")
-    float RotationSpeed = 10.0f;
     
     float CurrentAttackRange = 0.0f;
 
