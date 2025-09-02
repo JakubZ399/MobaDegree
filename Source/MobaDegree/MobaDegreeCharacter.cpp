@@ -13,7 +13,6 @@
 #include "Engine/World.h"
 #include "GameplayEffect.h"
 #include "MobaDegreePlayerController.h"
-#include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Component/HealthComponent.h"
 #include "Component/TeamComponent.h"
 #include "Components/WidgetComponent.h"
@@ -78,11 +77,41 @@ void AMobaDegreeCharacter::BeginPlay()
     {
         if (HasAuthority())
         {
-            FGameplayAbilitySpec PrimaryAttackAbilitySpec = AbilitySystemComponent->BuildAbilitySpecFromClass(PrimaryAttackAbility);
-            AbilitySystemComponent->GiveAbility(PrimaryAttackAbilitySpec);
+            if (PrimaryAttackAbility)
+            {
+                FGameplayAbilitySpec PrimaryAttackAbilitySpec = AbilitySystemComponent->BuildAbilitySpecFromClass(PrimaryAttackAbility);
+                AbilitySystemComponent->GiveAbility(PrimaryAttackAbilitySpec);
+            }
 
-            FGameplayAbilitySpec Ability1Spec = AbilitySystemComponent->BuildAbilitySpecFromClass(Ability1);
-            AbilitySystemComponent->GiveAbility(Ability1Spec);
+            if (Ability1)
+            {
+                FGameplayAbilitySpec Ability1Spec = AbilitySystemComponent->BuildAbilitySpecFromClass(Ability1);
+                AbilitySystemComponent->GiveAbility(Ability1Spec);   
+            }
+
+            if (AbilityRMBClass)
+            {
+                FGameplayAbilitySpec AbilityRMBSpec = AbilitySystemComponent->BuildAbilitySpecFromClass(AbilityRMBClass);
+                AbilitySystemComponent->GiveAbility(AbilityRMBSpec);
+            }
+
+            if (AbilityQClass)
+            {
+                FGameplayAbilitySpec AbilityQSpec = AbilitySystemComponent->BuildAbilitySpecFromClass(AbilityQClass);
+                AbilitySystemComponent->GiveAbility(AbilityQSpec);
+            }
+
+            if (AbilityEClass)
+            {
+                FGameplayAbilitySpec AbilityESpec = AbilitySystemComponent->BuildAbilitySpecFromClass(AbilityEClass);
+                AbilitySystemComponent->GiveAbility(AbilityESpec);
+            }
+
+            if (AbilityRClass)
+            {
+                FGameplayAbilitySpec AbilityRSpec = AbilitySystemComponent->BuildAbilitySpecFromClass(AbilityRClass);
+                AbilitySystemComponent->GiveAbility(AbilityRSpec);
+            }
         }
     },
         1.f, false);
@@ -105,8 +134,15 @@ void AMobaDegreeCharacter::PossessedBy(AController* NewController)
     
     MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
     
+    
     InitAbilityActorInfo();
     InitializeAttribute();
+
+    MobaPlayerController = Cast<AMobaDegreePlayerController>(NewController);
+    if (MobaPlayerController && AbilitySystemComponent)
+    {
+        MobaPlayerController->SetAbilitySystemComponent(AbilitySystemComponent);
+    }
 }
 
 void AMobaDegreeCharacter::OnRep_PlayerState()
@@ -117,6 +153,11 @@ void AMobaDegreeCharacter::OnRep_PlayerState()
     
     InitAbilityActorInfo();
     InitializeAttribute();
+    
+    if (MobaPlayerController && AbilitySystemComponent)
+    {
+        MobaPlayerController->SetAbilitySystemComponent(AbilitySystemComponent);
+    }
 }
 
 void AMobaDegreeCharacter::InitializeAttribute()
@@ -186,6 +227,30 @@ void AMobaDegreeCharacter::InitAbilityActorInfo()
         
         GetAbilitySystemComponent()->InitAbilityActorInfo(MobaPlayerState, this);
     }
+}
+
+void AMobaDegreeCharacter::ActivateRMBAbility()
+{
+    if (!AbilitySystemComponent && AbilityRMBClass) return;
+    AbilitySystemComponent->TryActivateAbilityByClass(AbilityRMBClass);
+}
+
+void AMobaDegreeCharacter::ActivateQAbility()
+{
+    if (!AbilitySystemComponent && AbilityQClass) return;
+    AbilitySystemComponent->TryActivateAbilityByClass(AbilityQClass);
+}
+
+void AMobaDegreeCharacter::ActivateEAbility()
+{
+    if (!AbilitySystemComponent && AbilityEClass) return;
+    AbilitySystemComponent->TryActivateAbilityByClass(AbilityEClass);
+}
+
+void AMobaDegreeCharacter::ActivateRAbility()
+{
+    if (!AbilitySystemComponent && AbilityRClass) return;
+    AbilitySystemComponent->TryActivateAbilityByClass(AbilityRClass);
 }
 
 UAbilitySystemComponent* AMobaDegreeCharacter::GetAbilitySystemComponent() const

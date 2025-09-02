@@ -59,8 +59,38 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
     TSubclassOf<UGameplayAbility> Ability1;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
+    TSubclassOf<UGameplayAbility> AbilityRMBClass;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
+    TSubclassOf<UGameplayAbility> AbilityQClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
+    TSubclassOf<UGameplayAbility> AbilityEClass;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Ability|Attack")
+    TSubclassOf<UGameplayAbility> AbilityRClass;
+
+    /***
+     * Ability Activation
+     */
     UFUNCTION(BlueprintImplementableEvent)
     void PerformAttack();
+
+    UFUNCTION()
+    void ActivateRMBAbility();
+
+    UFUNCTION()
+    void ActivateQAbility();
+
+    UFUNCTION()
+    void ActivateEAbility();
+
+    UFUNCTION()
+    void ActivateRAbility();
+    /***
+    * Ability Activation END
+    */
 
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     virtual EGameTeam GetTeamInterface_Implementation() const override;
@@ -75,6 +105,9 @@ protected:
 private:
     UPROPERTY()
     TObjectPtr<AMobaPlayerState> MobaPlayerState;
+
+    UPROPERTY()
+    TObjectPtr<class AMobaDegreePlayerController> MobaPlayerController;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
     class UCameraComponent* TopDownCameraComponent;

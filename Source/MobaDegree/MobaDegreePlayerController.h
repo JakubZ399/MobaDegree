@@ -8,6 +8,7 @@
 #include "GameFramework/PlayerController.h"
 #include "MobaDegreePlayerController.generated.h"
 
+class UAbilitySystemComponent;
 class UMobaMainUserWidget;
 class USplineComponent;
 class UNiagaraSystem;
@@ -56,6 +57,18 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
     UInputAction* AttackAction;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* AbilityRMBAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* AbilityQAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* AbilityEAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input)
+    UInputAction* AbilityRAction;
+
     UPROPERTY(BlueprintReadWrite, Category = "Combat")
     TObjectPtr<AActor> TraceTarget;
 
@@ -71,7 +84,6 @@ protected:
 
     void Look(const FInputActionValue& Value);
     void Move(const FInputActionValue& Value);
-    void PerformAttack(const FInputActionValue& Value);
 
     UFUNCTION(BlueprintImplementableEvent)
     void GetTraceTarget();
@@ -80,6 +92,15 @@ protected:
     FHitResult TraceFromeScreenCenter(float Distance);
 
 private:
+
+    UPROPERTY(BlueprintReadOnly, Category = "GAS", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
+    
+    void PerformAttack(const FInputActionValue& Value);
+    void ActivateRMBAbilityCallback(const FInputActionValue& Value);
+    void ActivateQAbilityCallback(const FInputActionValue& Value);
+    void ActivateEAbilityCallback(const FInputActionValue& Value);
+    void ActivateRAbilityCallback(const FInputActionValue& Value);
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaDegreeCharacter> PlayerCharacter;
@@ -92,4 +113,5 @@ private:
 
 public:
     FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }
+    FORCEINLINE void SetAbilitySystemComponent(UAbilitySystemComponent* NewAbilitySystemComponent) { NewAbilitySystemComponent ? AbilitySystemComponent = NewAbilitySystemComponent : AbilitySystemComponent = nullptr; }
 };

@@ -59,13 +59,15 @@ void AMobaDegreePlayerController::SetupInputComponent()
 
     if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
     {
-        //EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::OnInputStarted);
-        //EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
-        //EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AMobaDegreePlayerController::OnSetDestinationReleased);
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Look);
         EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Move);
 
         EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::PerformAttack);
+
+        EnhancedInputComponent->BindAction(AbilityRMBAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateRMBAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityQAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateQAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityEAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateEAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityRAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateRAbilityCallback);
     }
 }
 
@@ -99,8 +101,32 @@ void AMobaDegreePlayerController::Move(const FInputActionValue& Value)
 
 void AMobaDegreePlayerController::PerformAttack(const FInputActionValue& Value)
 {
-    GetTraceTarget();
+    if (!PlayerCharacter) return;
     PlayerCharacter->PerformAttack();
+}
+
+void AMobaDegreePlayerController::ActivateRMBAbilityCallback(const FInputActionValue& Value)
+{
+    if (!PlayerCharacter) return;
+    PlayerCharacter->ActivateRMBAbility();
+}
+
+void AMobaDegreePlayerController::ActivateQAbilityCallback(const FInputActionValue& Value)
+{
+    if (!PlayerCharacter) return;
+    PlayerCharacter->ActivateQAbility();
+}
+
+void AMobaDegreePlayerController::ActivateEAbilityCallback(const FInputActionValue& Value)
+{
+    if (!PlayerCharacter) return;
+    PlayerCharacter->ActivateEAbility();
+}
+
+void AMobaDegreePlayerController::ActivateRAbilityCallback(const FInputActionValue& Value)
+{
+    if (!PlayerCharacter) return;
+    PlayerCharacter->ActivateRAbility();
 }
 
 FHitResult AMobaDegreePlayerController::TraceFromeScreenCenter(float Distance)
