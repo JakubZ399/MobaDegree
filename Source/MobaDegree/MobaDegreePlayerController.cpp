@@ -102,7 +102,7 @@ void AMobaDegreePlayerController::Move(const FInputActionValue& Value)
 void AMobaDegreePlayerController::PerformAttack(const FInputActionValue& Value)
 {
     if (!PlayerCharacter) return;
-    PlayerCharacter->PerformAttack();
+    PlayerCharacter->ActivateAttackAbility();
 }
 
 void AMobaDegreePlayerController::ActivateRMBAbilityCallback(const FInputActionValue& Value)

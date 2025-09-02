@@ -74,8 +74,8 @@ public:
     /***
      * Ability Activation
      */
-    UFUNCTION(BlueprintImplementableEvent)
-    void PerformAttack();
+    UFUNCTION()
+    void ActivateAttackAbility();
 
     UFUNCTION()
     void ActivateRMBAbility();

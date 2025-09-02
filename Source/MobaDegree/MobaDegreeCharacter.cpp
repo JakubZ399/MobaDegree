@@ -229,6 +229,12 @@ void AMobaDegreeCharacter::InitAbilityActorInfo()
     }
 }
 
+void AMobaDegreeCharacter::ActivateAttackAbility()
+{
+    if (!AbilitySystemComponent && PrimaryAttackAbility) return;
+    AbilitySystemComponent->TryActivateAbilityByClass(PrimaryAttackAbility);
+}
+
 void AMobaDegreeCharacter::ActivateRMBAbility()
 {
     if (!AbilitySystemComponent && AbilityRMBClass) return;
