@@ -43,12 +43,6 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
     TObjectPtr<AActor> OldAttackTarget;
     
-    UPROPERTY(ReplicatedUsing = OnRep_CombatState, BlueprintReadOnly)
-    ECharacterCombatState CombatState = ECharacterCombatState::Idle;
-    
-    UFUNCTION()
-    void OnRep_CombatState();
-    
     // Interface functions
     virtual void ShowOutline_Implementation(bool EnableOutline, int32 OutlineColor) override;
     
@@ -129,6 +123,9 @@ private:
     
     UPROPERTY(EditAnywhere, Category = "Setup|GAS")
     TSubclassOf<UGameplayEffect> HealthRegenEffect;
+
+    UPROPERTY(EditAnywhere, Category = "Setup|GAS")
+    TSubclassOf<UGameplayEffect> AbilityInfoEffect;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UMobaAbilitySystemComponent> AbilitySystemComponent;
@@ -141,5 +138,4 @@ private:
 public:
     FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
     FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-    UFUNCTION(BlueprintCallable) FORCEINLINE void SetCombatState(ECharacterCombatState NewState) { CombatState = NewState; }
 };

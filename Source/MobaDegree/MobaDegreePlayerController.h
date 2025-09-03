@@ -78,6 +78,23 @@ public:
     UFUNCTION(BlueprintImplementableEvent, Category = "Combat")
     FHitResult PerformTraceFromScreen();
 
+    //Call Ability UI Cooldown
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void CallAttackAbilityUICooldown();
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void CallRMBAbilityUICooldown();
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void CallQAbilityUICooldown();
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void CallEAbilityUICooldown();
+
+    UFUNCTION(BlueprintImplementableEvent, BlueprintCallable)
+    void CallRAbilityUICooldown();
+    // \Call Ability UI Cooldown
+
 protected:
     virtual void SetupInputComponent() override;
     virtual void BeginPlay() override;

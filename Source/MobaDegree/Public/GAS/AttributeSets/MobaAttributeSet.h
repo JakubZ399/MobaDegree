@@ -89,9 +89,72 @@ private:
 
 	UFUNCTION()
 	void OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed);
-	
 
+
+public:
+	//AbilityRMB
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityRMBManaCost)
+	FGameplayAttributeData AbilityRMBManaCost;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityRMBManaCost)
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityRMBCooldown)
+	FGameplayAttributeData AbilityRMBCooldown;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityRMBCooldown)
+
+	//AbilityQ
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityQManaCost)
+	FGameplayAttributeData AbilityQManaCost;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityQManaCost)
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityQCooldown)
+	FGameplayAttributeData AbilityQCooldown;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityQCooldown)
+
+	//AbilityE
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityEManaCost)
+	FGameplayAttributeData AbilityEManaCost;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityEManaCost)
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityECooldown)
+	FGameplayAttributeData AbilityECooldown;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityECooldown)
+
+	//AbilityR
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityRManaCost)
+	FGameplayAttributeData AbilityRManaCost;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityRManaCost)
+
+	UPROPERTY(ReplicatedUsing = OnRep_AbilityRCooldown)
+	FGameplayAttributeData AbilityRCooldown;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, AbilityRCooldown)
+
+private:
+	//AbilityRMB
+	UFUNCTION()
+	void OnRep_AbilityRMBManaCost(const FGameplayAttributeData& OldAbilityRMBManaCost);
+
+	UFUNCTION()
+	void OnRep_AbilityRMBCooldown(const FGameplayAttributeData& OldAbilityRMBCooldown);
+
+	//AbilityQ
+	UFUNCTION()
+	void OnRep_AbilityQManaCost(const FGameplayAttributeData& OldAbilityQManaCost);
+
+	UFUNCTION()
+	void OnRep_AbilityQCooldown(const FGameplayAttributeData& OldAbilityQCooldown);
 	
-	
+	//AbilityE
+	UFUNCTION()
+	void OnRep_AbilityEManaCost(const FGameplayAttributeData& OldAbilityEManaCost);
+
+	UFUNCTION()
+	void OnRep_AbilityECooldown(const FGameplayAttributeData& OldAbilityECooldown);
+
+	//AbilityR
+	UFUNCTION()
+	void OnRep_AbilityRManaCost(const FGameplayAttributeData& OldAbilityRManaCost);
+
+	UFUNCTION()
+	void OnRep_AbilityRCooldown(const FGameplayAttributeData& OldAbilityRCooldown);
 };
 

@@ -63,11 +63,10 @@ void AMobaDegreePlayerController::SetupInputComponent()
         EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Move);
 
         EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::PerformAttack);
-
-        EnhancedInputComponent->BindAction(AbilityRMBAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateRMBAbilityCallback);
-        EnhancedInputComponent->BindAction(AbilityQAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateQAbilityCallback);
-        EnhancedInputComponent->BindAction(AbilityEAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateEAbilityCallback);
-        EnhancedInputComponent->BindAction(AbilityRAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::ActivateRAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityRMBAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRMBAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityQAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateQAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityEAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateEAbilityCallback);
+        EnhancedInputComponent->BindAction(AbilityRAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRAbilityCallback);
     }
 }
 

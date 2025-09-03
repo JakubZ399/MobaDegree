@@ -58,12 +58,7 @@ void AMobaDegreeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     
-    DOREPLIFETIME(AMobaDegreeCharacter, CombatState);
     DOREPLIFETIME(AMobaDegreeCharacter, AttackTarget);
-}
-
-void AMobaDegreeCharacter::OnRep_CombatState()
-{
 }
 
 void AMobaDegreeCharacter::BeginPlay()
@@ -163,8 +158,9 @@ void AMobaDegreeCharacter::OnRep_PlayerState()
 void AMobaDegreeCharacter::InitializeAttribute()
 {
     if (!AbilitySystemComponent) return;
-    if (!InitEffect) return;
-    if (!HealthRegenEffect) return;
+    check(InitEffect);
+    check(HealthRegenEffect);
+    check(AbilityInfoEffect);
     
     FGameplayEffectContextHandle EffectContextHandle = AbilitySystemComponent->MakeEffectContext();
     EffectContextHandle.AddSourceObject(this);
@@ -190,6 +186,15 @@ void AMobaDegreeCharacter::InitializeAttribute()
     if (RegenSpecHandle.IsValid())
     {
         FActiveGameplayEffectHandle RegenGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*RegenSpecHandle.Data.Get());
+    }
+
+    FGameplayEffectContextHandle AbilityInfoContextHandle = AbilitySystemComponent->MakeEffectContext();
+    AbilityInfoContextHandle.AddSourceObject(this);
+    
+    FGameplayEffectSpecHandle AbilityInfoSpecHandle = AbilitySystemComponent->MakeOutgoingSpec(AbilityInfoEffect, 1, AbilityInfoContextHandle);
+    if (AbilityInfoSpecHandle.IsValid())
+    {
+        FActiveGameplayEffectHandle AbilityInfoGEHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*AbilityInfoSpecHandle.Data.Get());
     }
     
     if (HealthComponent && HealthBarWidget && HealthBarWidget->GetWidget())

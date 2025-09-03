@@ -52,6 +52,18 @@ void UMobaAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AttackRange, COND_None, REPNOTIFY_Always)
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AttackSpeed, COND_None, REPNOTIFY_Always)
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always)
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRMBManaCost, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRMBCooldown, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityQManaCost, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityQCooldown, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityEManaCost, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityECooldown, COND_None, REPNOTIFY_Always);
+
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRManaCost, COND_None, REPNOTIFY_Always);
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRCooldown, COND_None, REPNOTIFY_Always);
 }
 
 void UMobaAttributeSet::OnRep_Health(const FGameplayAttributeData& OldHealth)
@@ -93,3 +105,44 @@ void UMobaAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMov
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, MovementSpeed, OldMovementSpeed);
 }
+
+void UMobaAttributeSet::OnRep_AbilityRMBManaCost(const FGameplayAttributeData& OldAbilityRMBManaCost)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityRMBManaCost, OldAbilityRMBManaCost);
+}
+
+void UMobaAttributeSet::OnRep_AbilityRMBCooldown(const FGameplayAttributeData& OldAbilityRMBCooldown)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityRMBCooldown, OldAbilityRMBCooldown);
+}
+
+void UMobaAttributeSet::OnRep_AbilityQManaCost(const FGameplayAttributeData& OldAbilityQManaCost)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityQCooldown, OldAbilityQManaCost);
+}
+
+void UMobaAttributeSet::OnRep_AbilityQCooldown(const FGameplayAttributeData& OldAbilityQCooldown)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityQCooldown, OldAbilityQCooldown);
+}
+
+void UMobaAttributeSet::OnRep_AbilityEManaCost(const FGameplayAttributeData& OldAbilityEManaCost)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityECooldown, OldAbilityEManaCost);
+}
+
+void UMobaAttributeSet::OnRep_AbilityECooldown(const FGameplayAttributeData& OldAbilityECooldown)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityECooldown, OldAbilityECooldown);
+}
+
+void UMobaAttributeSet::OnRep_AbilityRManaCost(const FGameplayAttributeData& OldAbilityRManaCost)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityRCooldown, OldAbilityRManaCost);
+}
+
+void UMobaAttributeSet::OnRep_AbilityRCooldown(const FGameplayAttributeData& OldAbilityRCooldown)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityRCooldown, OldAbilityRCooldown);
+}
+
