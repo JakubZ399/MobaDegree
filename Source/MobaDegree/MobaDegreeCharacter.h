@@ -37,7 +37,7 @@ public:
     virtual void OnRep_PlayerState() override;
     
     // Attack System
-    UPROPERTY(Replicated ,VisibleAnywhere, BlueprintReadWrite)
+    UPROPERTY(Replicated,VisibleAnywhere, BlueprintReadWrite)
     TObjectPtr<AActor> AttackTarget;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
@@ -97,10 +97,10 @@ protected:
     void InitAbilityActorInfo();
 
 private:
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<AMobaPlayerState> MobaPlayerState;
 
-    UPROPERTY()
+    UPROPERTY(BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<class AMobaDegreePlayerController> MobaPlayerController;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -130,8 +130,11 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UMobaAbilitySystemComponent> AbilitySystemComponent;
     
-    UPROPERTY()
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UMobaAttributeSet> AttributeSet;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player", meta = (AllowPrivateAccess = "true"))
+    float AttackRange = 900.f;
     
     float CurrentAttackRange = 0.0f;
 
