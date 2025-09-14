@@ -129,7 +129,6 @@ void AMobaDegreeCharacter::PossessedBy(AController* NewController)
     
     MobaPlayerState = Cast<AMobaPlayerState>(GetPlayerState());
     
-    
     InitAbilityActorInfo();
     InitializeAttribute();
 
@@ -137,6 +136,10 @@ void AMobaDegreeCharacter::PossessedBy(AController* NewController)
     if (MobaPlayerController && AbilitySystemComponent)
     {
         MobaPlayerController->SetAbilitySystemComponent(AbilitySystemComponent);
+        if (AttributeSet)
+        {
+            MobaPlayerController->SetAttackRadius(AttributeSet->GetAttackRange());
+        }
     }
 }
 
@@ -148,10 +151,15 @@ void AMobaDegreeCharacter::OnRep_PlayerState()
     
     InitAbilityActorInfo();
     InitializeAttribute();
-    
+
+    if (!MobaPlayerController) MobaPlayerController = Cast<AMobaDegreePlayerController>(GetController());
     if (MobaPlayerController && AbilitySystemComponent)
     {
         MobaPlayerController->SetAbilitySystemComponent(AbilitySystemComponent);
+        if (AttributeSet)
+        {
+            MobaPlayerController->SetAttackRadius(AttributeSet->GetAttackRange());
+        }
     }
 }
 

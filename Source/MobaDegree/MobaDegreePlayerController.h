@@ -128,7 +128,12 @@ private:
     UPROPERTY()
     TObjectPtr<AActor> AttackTarget;
 
+    UPROPERTY(BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+    float AttackRadius = 900.f;
+
 public:
     FORCEINLINE AActor* GetAttackTarget() { return AttackTarget; }
     FORCEINLINE void SetAbilitySystemComponent(UAbilitySystemComponent* NewAbilitySystemComponent) { NewAbilitySystemComponent ? AbilitySystemComponent = NewAbilitySystemComponent : AbilitySystemComponent = nullptr; }
+    FORCEINLINE void SetAttackRadius(float NewAttackRadius) { AttackRadius = NewAttackRadius; }
+    
 };
