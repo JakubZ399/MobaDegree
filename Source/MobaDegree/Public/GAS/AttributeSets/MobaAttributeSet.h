@@ -62,6 +62,10 @@ public:
 	FGameplayAttributeData MovementSpeed;
 	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, MovementSpeed)
 
+	UPROPERTY(ReplicatedUsing = OnRep_LifeSteal)
+	FGameplayAttributeData LifeSteal;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, LifeSteal)
+
 private:
 	bool bIsHealthInitialized{false};
 	bool bIsManaInitialized{false};
@@ -89,6 +93,9 @@ private:
 
 	UFUNCTION()
 	void OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed);
+
+	UFUNCTION()
+	void OnRep_LifeSteal(const FGameplayAttributeData& OldLifeSteal);
 
 
 public:

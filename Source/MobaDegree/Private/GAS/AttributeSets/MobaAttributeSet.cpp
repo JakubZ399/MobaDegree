@@ -52,6 +52,7 @@ void UMobaAttributeSet::GetLifetimeReplicatedProps(TArray<class FLifetimePropert
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AttackRange, COND_None, REPNOTIFY_Always)
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AttackSpeed, COND_None, REPNOTIFY_Always)
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, MovementSpeed, COND_None, REPNOTIFY_Always)
+	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, LifeSteal, COND_None, REPNOTIFY_Always)
 
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRMBManaCost, COND_None, REPNOTIFY_Always);
 	DOREPLIFETIME_CONDITION_NOTIFY(UMobaAttributeSet, AbilityRMBCooldown, COND_None, REPNOTIFY_Always);
@@ -104,6 +105,11 @@ void UMobaAttributeSet::OnRep_AttackSpeed(const FGameplayAttributeData& OldAttac
 void UMobaAttributeSet::OnRep_MovementSpeed(const FGameplayAttributeData& OldMovementSpeed)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, MovementSpeed, OldMovementSpeed);
+}
+
+void UMobaAttributeSet::OnRep_LifeSteal(const FGameplayAttributeData& OldLifeSteal)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, LifeSteal, OldLifeSteal);
 }
 
 void UMobaAttributeSet::OnRep_AbilityRMBManaCost(const FGameplayAttributeData& OldAbilityRMBManaCost)
