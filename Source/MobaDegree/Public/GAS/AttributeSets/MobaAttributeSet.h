@@ -66,6 +66,19 @@ public:
 	FGameplayAttributeData LifeSteal;
 	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, LifeSteal)
 
+	//
+	UPROPERTY(ReplicatedUsing = OnRep_DamageReduction)
+	FGameplayAttributeData DamageReduction;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, DamageReduction)
+
+	UPROPERTY(ReplicatedUsing = OnRep_CritChance)
+	FGameplayAttributeData CritChance;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, CritChance)
+
+	UPROPERTY(ReplicatedUsing = OnRep_CritMultiplier)
+	FGameplayAttributeData CritMultiplier;
+	ATTRIBUTE_ACCESSORS(UMobaAttributeSet, CritMultiplier)
+
 private:
 	bool bIsHealthInitialized{false};
 	bool bIsManaInitialized{false};
@@ -97,6 +110,15 @@ private:
 	UFUNCTION()
 	void OnRep_LifeSteal(const FGameplayAttributeData& OldLifeSteal);
 
+	//
+	UFUNCTION()
+	void OnRep_DamageReduction(const FGameplayAttributeData& OldDamageReduction);
+
+	UFUNCTION()
+	void OnRep_CritChance(const FGameplayAttributeData& OldCritChance);
+
+	UFUNCTION()
+	void OnRep_CritMultiplier(const FGameplayAttributeData& OldCritMultiplier);
 
 public:
 	//AbilityRMB

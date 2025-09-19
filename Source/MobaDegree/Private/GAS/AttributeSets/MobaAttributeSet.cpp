@@ -112,6 +112,21 @@ void UMobaAttributeSet::OnRep_LifeSteal(const FGameplayAttributeData& OldLifeSte
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, LifeSteal, OldLifeSteal);
 }
 
+void UMobaAttributeSet::OnRep_DamageReduction(const FGameplayAttributeData& OldDamageReduction)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, DamageReduction, OldDamageReduction);
+}
+
+void UMobaAttributeSet::OnRep_CritChance(const FGameplayAttributeData& OldCritChance)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, CritChance, OldCritChance);
+}
+
+void UMobaAttributeSet::OnRep_CritMultiplier(const FGameplayAttributeData& OldCritMultiplier)
+{
+	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, CritMultiplier, OldCritMultiplier);
+}
+
 void UMobaAttributeSet::OnRep_AbilityRMBManaCost(const FGameplayAttributeData& OldAbilityRMBManaCost)
 {
 	GAMEPLAYATTRIBUTE_REPNOTIFY(UMobaAttributeSet, AbilityRMBManaCost, OldAbilityRMBManaCost);
