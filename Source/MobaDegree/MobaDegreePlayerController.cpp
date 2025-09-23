@@ -29,12 +29,68 @@ void AMobaDegreePlayerController::BeginPlay()
 
     PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
     CreateMainWidget();
+
+    SetInputMode(FInputModeGameOnly());
+    bShowMouseCursor = false;
 }
 
 void AMobaDegreePlayerController::OnPossess(APawn* InPawn)
 {
     Super::OnPossess(InPawn);
     PlayerCharacter = Cast<AMobaDegreeCharacter>(InPawn);
+
+    SetInputMode(FInputModeGameOnly());
+    bShowMouseCursor = false;
+
+    /*if (IsLocalController())
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("OnPossess>Local")));
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+        {
+            Subsystem->AddMappingContext(DefaultMappingContext, 0);
+        }
+
+        if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+        {
+            EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Look);
+            EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Move);
+
+            EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::PerformAttack);
+            EnhancedInputComponent->BindAction(AbilityRMBAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRMBAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityQAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateQAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityEAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateEAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityRAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRAbilityCallback);
+        }
+    }*/
+}
+
+void AMobaDegreePlayerController::ReceivedPlayer()
+{
+    Super::ReceivedPlayer();
+
+    SetInputMode(FInputModeGameOnly());
+    bShowMouseCursor = false;
+
+    /*if (IsLocalController())
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("OnPossess>Local")));
+        if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+        {
+            Subsystem->AddMappingContext(DefaultMappingContext, 0);
+        }
+
+        if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
+        {
+            EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Look);
+            EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::Move);
+
+            EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Triggered, this, &AMobaDegreePlayerController::PerformAttack);
+            EnhancedInputComponent->BindAction(AbilityRMBAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRMBAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityQAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateQAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityEAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateEAbilityCallback);
+            EnhancedInputComponent->BindAction(AbilityRAction, ETriggerEvent::Started, this, &AMobaDegreePlayerController::ActivateRAbilityCallback);
+        }
+    }*/
 }
 
 void AMobaDegreePlayerController::OnRep_Pawn()

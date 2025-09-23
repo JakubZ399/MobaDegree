@@ -25,6 +25,7 @@ public:
     AMobaDegreePlayerController();
     virtual void Tick(float DeltaSeconds) override;
     virtual void OnPossess(APawn* InPawn) override;
+    virtual void ReceivedPlayer() override;
     virtual void OnRep_Pawn() override;
 
     UFUNCTION(Client, Reliable)
