@@ -27,12 +27,16 @@ public:
     virtual void OnPossess(APawn* InPawn) override;
     virtual void ReceivedPlayer() override;
     virtual void OnRep_Pawn() override;
+    virtual void OnRep_PlayerState() override;
 
     UFUNCTION(Client, Reliable)
     void CreateMainWidget();
 
     UFUNCTION(BlueprintImplementableEvent)
     void InitializeMainWidgetBlueprintVariable();
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void InitializeAbilitySystemComponentOnWidget(UAbilitySystemComponent* ASC);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
     TObjectPtr<UMobaMainUserWidget> MainUserWidget;

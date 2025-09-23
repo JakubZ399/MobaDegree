@@ -15,6 +15,7 @@
 #include "Engine/LocalPlayer.h"
 #include "Interfaces/MobaInteraction.h"
 #include "Interfaces/MobaTeamInterface.h"
+#include "Player/MobaPlayerState.h"
 #include "UI/Widget/MobaMainUserWidget.h"
 
 
@@ -97,6 +98,19 @@ void AMobaDegreePlayerController::OnRep_Pawn()
 {
     Super::OnRep_Pawn();
     PlayerCharacter = Cast<AMobaDegreeCharacter>(GetPawn());
+}
+
+void AMobaDegreePlayerController::OnRep_PlayerState()
+{
+    Super::OnRep_PlayerState();
+
+    if (AMobaPlayerState* MobaPlayerState = Cast<AMobaPlayerState>(PlayerState))
+    {
+        if (UAbilitySystemComponent* AbilitySystemComponentL = MobaPlayerState->GetAbilitySystemComponent())
+        {
+            InitializeAbilitySystemComponentOnWidget(AbilitySystemComponentL);
+        }
+    }
 }
 
 void AMobaDegreePlayerController::Tick(float DeltaSeconds)
