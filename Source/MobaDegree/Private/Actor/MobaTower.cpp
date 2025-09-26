@@ -8,6 +8,7 @@
 #include "Components/SphereComponent.h"
 #include "Component/TeamComponent.h"
 #include "Minions/MinionsGroupPawn.h"
+#include "Net/UnrealNetwork.h"
 
 
 AMobaTower::AMobaTower()
@@ -16,6 +17,9 @@ AMobaTower::AMobaTower()
 
 	TowerRadius = CreateDefaultSubobject<USphereComponent>("Tower Radius");
 	TowerRadius->SetupAttachment(GetRootComponent());
+
+	TowerMesh = CreateDefaultSubobject<USkeletalMeshComponent>("Tower Mesh");
+	TowerMesh->SetupAttachment(GetRootComponent());
 
 	AttackComponent = CreateDefaultSubobject<UAttackComponent>("Attack Component");
 	AttackComponent->SetIsReplicated(true);
@@ -27,6 +31,93 @@ AMobaTower::AMobaTower()
 void AMobaTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateAiming(DeltaTime);
+
+	if (bAiming)
+	{
+		if (AlphaRotation >= 1.f)
+		{
+			AlphaRotation = 1.f;
+		}
+		if (AlphaRotation < 1.f)
+		{
+			AlphaRotation += AlphaRotationSpeed * DeltaTime;
+		}
+	}
+	else
+	{
+		if (AlphaRotation <= 0.f)
+		{
+			AlphaRotation = 0.f;
+		}
+		if (AlphaRotation > 0.f)
+		{
+			AlphaRotation -= AlphaRotationSpeed * DeltaTime;
+		}
+	}
+
+	if (bAlphaRotation)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Red, FString::Printf(TEXT("Alpha: %f"), AlphaRotation));
+	}
+
+}
+
+void AMobaTower::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AMobaTower, bAiming);
+	DOREPLIFETIME(AMobaTower, bIsFiring);
+	DOREPLIFETIME(AMobaTower, DistanceToTarget);
+	DOREPLIFETIME(AMobaTower, AttackTargetPosition);
+}
+
+void AMobaTower::UpdateAiming(float DeltaTime)
+{
+	AActor* Target = AttackComponent ? AttackComponent->GetAttackTarget() : nullptr;
+	bAiming = IsValid(Target);
+
+	if (!bAiming)
+	{
+		DistanceToTarget     = 0.f;
+		AttackTargetPosition = FVector::ZeroVector;
+		return;
+	}
+
+	const FVector AimOrigin = ProjectileSpawner ? ProjectileSpawner->GetComponentLocation()
+												: GetActorLocation();
+
+	AttackTargetPosition = Target->GetActorLocation();
+	DistanceToTarget     = FVector::Dist(AimOrigin, AttackTargetPosition);
+}
+
+void AMobaTower::StartAttackLoop()
+{
+	if (!HasAuthority()) return;
+	if (bIsAttacking)    return;
+
+	bIsAttacking = true;
+
+	SpawnTowerShot();
+
+	GetWorldTimerManager().SetTimer(
+		AttackTimerHandle, this, &AMobaTower::SpawnTowerShot, TowerAttackTime, true);
+}
+
+void AMobaTower::StopAttackLoop()
+{
+	if (!HasAuthority()) return;
+	if (!bIsAttacking)   return;
+
+	bIsAttacking = false;
+	GetWorldTimerManager().ClearTimer(AttackTimerHandle);
+}
+
+void AMobaTower::ResetIsFiring()
+{
+	bIsFiring = false;
+	ForceNetUpdate();
 }
 
 void AMobaTower::BeginPlay()
@@ -35,21 +126,11 @@ void AMobaTower::BeginPlay()
     
 	TowerRadius->OnComponentBeginOverlap.AddDynamic(this, &ThisClass::OnTargetEnteredRange);
 	TowerRadius->OnComponentEndOverlap.AddDynamic(this, &ThisClass::OnTargetExitedRange);
-
-	ProjectileSpawnerTransform = ProjectileSpawner->GetComponentTransform();
     
 	if (TowerAttackClass && HasAuthority())
 	{
 		GetAbilitySystemComponent()->GiveAbility(FGameplayAbilitySpec(TowerAttackClass, 1));
 	}
-}
-
-void AMobaTower::StartAttackSequence()
-{
-	if (!bIsAttacking || !AttackComponent->GetAttackTarget())
-		return;
-        
-	SpawnTowerShot();
 }
 
 void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor,
@@ -69,11 +150,9 @@ void AMobaTower::OnTargetEnteredRange(UPrimitiveComponent* OverlappedComponent, 
 		if (!AttackComponent->GetAttackTarget())
 		{
 			AttackComponent->SetAttackTarget(OtherActor);
-			if (!bIsAttacking)
-			{
-				bIsAttacking = true;
-				StartAttackSequence();
-			}
+
+			bAiming = true;
+			StartAttackLoop();
 		}
 	}
 }
@@ -106,56 +185,51 @@ void AMobaTower::OnTargetDestroyed(AActor* DestroyedActor)
 
 void AMobaTower::SelectNextTarget()
 {
-	if (TargetsInRange.Num() > 0)
+	AActor* Best = nullptr;
+	float BestSq = TNumericLimits<float>::Max();
+	const FVector Origin = GetActorLocation();
+
+	for (AActor* Candidate : TargetsInRange)
 	{
-		AttackComponent->SetAttackTarget(TargetsInRange[0]);
-		if (!bIsAttacking)
+		if (!IsValid(Candidate)) continue;
+		const float DistSq = FVector::DistSquared(Candidate->GetActorLocation(), Origin);
+		if (DistSq < BestSq)
 		{
-			bIsAttacking = true;
-			StartAttackSequence();
+			BestSq = DistSq;
+			Best = Candidate;
 		}
+	}
+
+	AttackComponent->SetAttackTarget(Best);
+
+	if (Best)
+	{
+		bAiming = true;
+		if (!bIsAttacking) StartAttackLoop();
 	}
 	else
 	{
-		AttackComponent->SetAttackTarget(nullptr);
-		bIsAttacking = false;
+		bAiming = false;
+		StopAttackLoop();
 	}
 }
 
 void AMobaTower::SpawnTowerShot()
 {
-	if (!GetWorld() || !AttackComponent || !AttackComponent->GetAttackTarget() || !TowerShotClass)
+	if (!HasAuthority()) return;
+
+	AActor* Target = AttackComponent ? AttackComponent->GetAttackTarget() : nullptr;
+	if (!Target)
 	{
-		bIsAttacking = false;
+		StopAttackLoop();
 		return;
 	}
-
-	ATowerShot* TowerShot = GetWorld()->SpawnActor<ATowerShot>(TowerShotClass, GetProjectileSpawnerTransform());
-	if (TowerShot)
-	{
-		TowerShot->AttackTarget(AttackComponent->GetAttackTarget());
-
-		GetWorldTimerManager().SetTimer(
-			AttackTimerHandle,
-			this,
-			&AMobaTower::OnAttackTimerComplete,
-			TowerAttackTime,
-			false
-		);
-	}
-}
-
-void AMobaTower::OnAttackTimerComplete()
-{
-	if (AttackComponent && AttackComponent->GetAttackTarget())
-	{
-		SpawnTowerShot();
-	}
-	else
-	{
-		bIsAttacking = false;
-		SelectNextTarget();
-	}
+	
+	bIsFiring = true;
+	ForceNetUpdate();
+	GetWorldTimerManager().SetTimerForNextTick(this, &AMobaTower::ResetIsFiring);
+	
+	ActivateAbilityAttack();
 }
 
 float AMobaTower::GetAttributeTower(FGameplayAttribute AttributeType)

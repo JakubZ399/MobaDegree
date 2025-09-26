@@ -53,4 +53,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UGameplayEffect> TowerShotEffect;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Setup", meta = (AllowPrivateAccess = "true"))
+	float TowerShotSpeed = 0.01;
 };

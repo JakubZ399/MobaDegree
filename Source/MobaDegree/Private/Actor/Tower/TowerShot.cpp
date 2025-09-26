@@ -23,7 +23,6 @@ ATowerShot::ATowerShot()
 
 	SphereComponent = CreateDefaultSubobject<USphereComponent>("Sphere Component");
 	SphereComponent->SetupAttachment(GetRootComponent());
-
 }
 
 void ATowerShot::Tick(float DeltaSeconds)
@@ -35,7 +34,7 @@ void ATowerShot::Tick(float DeltaSeconds)
 		Destroy();
 		return;
 	}
-
+	
 	float EasedAlpha = FMath::InterpExpoIn(0.0f, 1.0f, AlphaToInterpolation);
 	FVector ShotLocation = FMath::Lerp(GetActorLocation(), AttackTargetActor->GetActorLocation(), EasedAlpha);
 	SetActorLocation(ShotLocation);
@@ -76,7 +75,7 @@ void ATowerShot::UpdateAlpha()
 {
 	if (HasAuthority())
 	{
-		AlphaToInterpolation += 0.003f;
+		AlphaToInterpolation += TowerShotSpeed;
 		AlphaToInterpolation = FMath::Clamp(AlphaToInterpolation, 0.0f, 1.0f);
 
 		if (AlphaToInterpolation >= 1.0f)
